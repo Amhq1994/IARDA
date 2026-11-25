@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fmtDate } from "../util";
 import { useTranslation } from "react-i18next";
 import { PERMISSIONS, ROLES } from "@iarda/shared";
 import { api } from "../api";
@@ -52,6 +54,7 @@ export function ProfilePage() {
           </Section>
         </div>
         <div>
+          {(me.permissions.includes("delegation.own")) && <Delegations />}
           <Section icon="globe" title={t("profile.language")}>
             <div className="btn-group">
               <button className={`btn ${lang === "ar" ? "btn--primary" : "btn--secondary"}`} onClick={() => setLanguage("ar", true)}>العربية</button>
@@ -67,5 +70,41 @@ export function ProfilePage() {
         </div>
       </div>
     </>
+  );
+}
+
+function Delegations() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const { me } = useAuth();
+  const qc = useQueryClient();
+  const list = useQuery({ queryKey: ["delegations"], queryFn: () => api.get("/api/delegations") });
+  const users = useQuery({ queryKey: ["deleg-users"], queryFn: () => api.get("/api/delegates").catch(() => ({ data: [] })) });
+  const [b, setB] = useState({ toUserId: "", from: new Date().toISOString().slice(0, 10), to: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), reason: "" });
+  return (
+    <Section icon="users" title={t("ops.delegation")}>
+      {(list.data?.data ?? []).filter((d: any) => d.from_user_id === me!.id || d.to_user_id === me!.id).map((d: any) => (
+        <div className="kpi-target" key={d.id}>
+          <span>{lang === "ar" ? d.from_name_ar : d.from_name_en} → <b>{lang === "ar" ? d.to_name_ar : d.to_name_en}</b><br />
+            <small className="muted">{fmtDate(d.valid_from, lang)} – {fmtDate(d.valid_to, lang)} · {d.reason} · {d.status}</small></span>
+          {d.status === "active" && d.from_user_id === me!.id && <button className="btn btn--ghost btn--sm" onClick={async () => {
+            try { await api.post(`/api/delegations/${d.id}/revoke`, {}); qc.invalidateQueries({ queryKey: ["delegations"] }); } catch (e) { toast.error(errorText(e, lang)); }
+          }}>{t("ops.revoke")}</button>}
+        </div>
+      ))}
+      <div className="form-grid" style={{ marginTop: 12 }}>
+        <Field label={t("ops.delegateTo")}><select className="select" value={b.toUserId} onChange={(e) => setB({ ...b, toUserId: e.target.value })}>
+          <option value=""></option>{(users.data?.data ?? []).filter((u: any) => u.id !== me!.id).map((u: any) => <option key={u.id} value={u.id}>{lang === "ar" ? u.name_ar : u.name_en}</option>)}</select></Field>
+        <Field label={t("ops.from")}><input className="input" type="date" value={b.from} onChange={(e) => setB({ ...b, from: e.target.value })} /></Field>
+        <Field label={t("ops.to")}><input className="input" type="date" value={b.to} onChange={(e) => setB({ ...b, to: e.target.value })} /></Field>
+        <Field label={t("common.reason")}><input className="input" value={b.reason} onChange={(e) => setB({ ...b, reason: e.target.value })} /></Field>
+      </div>
+      <div className="form-actions"><button className="btn btn--primary btn--sm" disabled={!b.toUserId || b.reason.trim().length < 3} onClick={async () => {
+        try {
+          await api.post("/api/delegations", { toUserId: b.toUserId, validFrom: new Date(b.from + "T00:00:00").toISOString(), validTo: new Date(b.to + "T23:59:59").toISOString(), reason: b.reason, docTypes: ["MR"] });
+          toast.success(t("common.saved")); qc.invalidateQueries({ queryKey: ["delegations"] });
+        } catch (e) { toast.error(errorText(e, lang)); }
+      }}>{t("ops.newDelegation")}</button></div>
+    </Section>
   );
 }

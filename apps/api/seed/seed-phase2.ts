@@ -337,6 +337,14 @@ export async function seedPhase2(databaseUrl = config.databaseUrl, log = console
     const mRej = await mkMr("req.env", "RYD", "issue", [["FRCHR-00001", 2]], { purpose: "كراسي إضافية" });
     await submit("req.env", mRej.id); await decide("dm.env", mRej.id, "reject", "يتوفر أثاث فائض في المبنى، يرجى التنسيق مع الخدمات");
     await mkMr("req.it", "RYD", "custody", [["ITCMP-00001", 1]], { purpose: "عهدة حاسب محمول لموظف جديد" });
+    // demo realism: spread seeded lifecycles over plausible durations (instant seeding would show 0 h KPIs)
+    await as(c, sys, async () => {
+      await c.query(`UPDATE material_request SET submitted_at = delivered_at - make_interval(hours => 6 + (abs(hashtext(mr_no)) % 30)),
+                       approved_at = delivered_at - make_interval(hours => 3 + (abs(hashtext(mr_no)) % 6))
+                     WHERE status = 'closed' AND delivered_at IS NOT NULL`);
+      await c.query(`UPDATE receipt SET arrived_at = coalesce(putaway_completed_at, grn_posted_at, now()) - make_interval(hours => 20 + (abs(hashtext(receipt_no)) % 30))
+                     WHERE status IN ('putaway_done','grn_posted')`);
+    });
     log(`seed: requests — ${n} closed, 1 ready for delivery, 1 picking, 1 approved (delegate), 2 pending, 1 urgent, 1 overdue/escalated, 1 returned, 1 rejected, 1 draft`);
   } finally {
     await c.end();

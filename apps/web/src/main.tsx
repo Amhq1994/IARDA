@@ -22,6 +22,10 @@ import { RolesPage } from "./pages/Roles";
 import { SettingsPage } from "./pages/Settings";
 import { AuditPage } from "./pages/Audit";
 import { ProfilePage } from "./pages/Profile";
+import { RequestsPage, RequestFormPage, RequestDetailPage, DeliveryNotePage } from "./pages/Requests";
+import { ReceiptsPage, ReceiptDetailPage, PurchaseOrdersPage, PurchaseOrderDetailPage } from "./pages/Inbound";
+import { StockPage } from "./pages/Stock";
+import { MobileHome, MobilePutawayList, MobilePutawayTask, MobilePickLists, MobilePickList, MobileLookup } from "./pages/Mobile";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e: any) => n < 1 && !(e?.status >= 400 && e?.status < 500), refetchOnWindowFocus: false } } });
 
@@ -45,6 +49,12 @@ function NotFound() {
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/m", element: <RequireAuth><MobileHome /></RequireAuth> },
+  { path: "/m/putaway", element: <RequireAuth><MobilePutawayList /></RequireAuth> },
+  { path: "/m/putaway/:id", element: <RequireAuth><MobilePutawayTask /></RequireAuth> },
+  { path: "/m/pick", element: <RequireAuth><MobilePickLists /></RequireAuth> },
+  { path: "/m/pick/:id", element: <RequireAuth><MobilePickList /></RequireAuth> },
+  { path: "/m/lookup", element: <RequireAuth><MobileLookup /></RequireAuth> },
   {
     path: "/",
     element: <RequireAuth><Layout /></RequireAuth>,
@@ -64,6 +74,16 @@ const router = createBrowserRouter([
       { path: "settings", element: <Guard perms={["admin.settings"]}><SettingsPage /></Guard> },
       { path: "audit", element: <Guard perms={["audit.read"]}><AuditPage /></Guard> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "requests", element: <Guard perms={["request.create", "request.approve", "issue.execute", "audit.read", "delegation.own"]}><RequestsPage /></Guard> },
+      { path: "requests/new", element: <Guard perms={["request.create"]}><RequestFormPage /></Guard> },
+      { path: "requests/:id", element: <RequestDetailPage /> },
+      { path: "requests/:id/edit", element: <Guard perms={["request.create"]}><RequestFormPage /></Guard> },
+      { path: "delivery-notes/:id", element: <DeliveryNotePage /> },
+      { path: "inbound/receipts", element: <Guard perms={["receipt.execute", "inspection.execute", "grn.post", "po.read"]}><ReceiptsPage /></Guard> },
+      { path: "inbound/receipts/:id", element: <ReceiptDetailPage /> },
+      { path: "inbound/pos", element: <Guard perms={["po.read"]}><PurchaseOrdersPage /></Guard> },
+      { path: "inbound/pos/:id", element: <Guard perms={["po.read"]}><PurchaseOrderDetailPage /></Guard> },
+      { path: "stock", element: <Guard perms={["warehouse.read"]}><StockPage /></Guard> },
       { path: "*", element: <NotFound /> },
     ],
   },

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, setLanguage } from "../auth";
 import { Icon, Toaster } from "./ui";
+import { NotificationBell } from "./NotificationBell";
 
 interface NavItem { to: string; icon: string; key: string; perms?: string[]; soon?: boolean }
 interface NavGroup { key: string; items: NavItem[] }
@@ -16,8 +17,11 @@ const NAV: NavGroup[] = [
     { to: "/suppliers", icon: "users", key: "nav.suppliers", perms: ["supplier.read", "supplier.manage"] },
   ] },
   { key: "nav.operations", items: [
-    { to: "#inbound", icon: "download", key: "nav.inbound", perms: ["receipt.execute", "inspection.execute", "grn.post", "asn.submit"], soon: true },
-    { to: "#outbound", icon: "report", key: "nav.outbound", perms: ["request.create", "request.approve", "issue.execute"], soon: true },
+    { to: "/requests", icon: "report", key: "ops.requests", perms: ["request.create", "request.approve", "issue.execute", "delegation.own"] },
+    { to: "/inbound/receipts", icon: "download", key: "ops.receipts", perms: ["receipt.execute", "inspection.execute", "grn.post"] },
+    { to: "/inbound/pos", icon: "sheet", key: "ops.purchaseOrders", perms: ["po.read"] },
+    { to: "/stock", icon: "chart", key: "ops.stock", perms: ["warehouse.read"] },
+    { to: "/m", icon: "slides", key: "ops.mobile", perms: ["mobile.tasks"] },
     { to: "#counting", icon: "check", key: "nav.counting", perms: ["count.plan", "count.execute", "adjustment.approve"], soon: true },
     { to: "#planning", icon: "chart", key: "nav.planning", perms: ["planning.manage", "valuation.manage"], soon: true },
   ] },
@@ -50,6 +54,7 @@ export function Layout() {
         <span className="app-header__spacer" />
         <div className="app-header__actions">
           <button className="btn btn--ghost btn--sm" type="button" onClick={() => setLanguage(lang === "ar" ? "en" : "ar", true)}>{t("app.switchLang")}</button>
+          <NotificationBell />
           <button className="user-chip" type="button" onClick={() => nav("/profile")} title={t("nav.profile")}>
             <span className="user-chip__avatar">{initial}</span>
             <span>{name}</span>

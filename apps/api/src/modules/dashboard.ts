@@ -50,6 +50,47 @@ export async function dashboardRoutes(app: FastifyInstance) {
           GROUP BY w.id ORDER BY w.code`, scope === "all" ? [] : [scope]);
     }
 
+    // ---------------------------------------------------------------- phase 2: operations
+    const whScope = can(u, "warehouse.read") ? warehouseScope(u, "warehouse.read") : can(u, "issue.execute") ? warehouseScope(u, "issue.execute") : "all";
+    const wp = whScope === "all" ? [] : [whScope];
+    const wf = (col: string) => (whScope === "all" ? "" : `AND ${col} = ANY($1)`);
+    out.myApprovals = (await one(pool, "SELECT count(*)::int AS n FROM approval_task WHERE assignee_id = $1 AND status = 'pending'", [u.id]))!.n;
+    if (can(u, "request.create")) {
+      out.myRequests = await one(pool, `SELECT count(*) FILTER (WHERE status NOT IN ('closed','cancelled','rejected'))::int AS open,
+          count(*) FILTER (WHERE status = 'ready_for_delivery')::int AS ready, count(*) FILTER (WHERE status = 'draft')::int AS drafts
+        FROM material_request WHERE requester_id = $1`, [u.id]);
+    }
+    if (can(u, "warehouse.read") || can(u, "issue.execute")) {
+      out.operations = await one(pool, `SELECT
+          (SELECT count(*)::int FROM material_request m WHERE m.status IN ('approved','reserved','picking','ready_for_delivery','partially_delivered') ${wf("m.warehouse_id")}) AS to_fulfil,
+          (SELECT count(*)::int FROM material_request m WHERE m.is_overdue AND m.status NOT IN ('closed','cancelled','rejected') ${wf("m.warehouse_id")}) AS overdue,
+          (SELECT count(*)::int FROM receipt r WHERE r.status IN ('arrived','qty_checked') ${wf("r.warehouse_id")}) AS at_dock,
+          (SELECT count(*)::int FROM receipt r WHERE r.status = 'in_inspection' ${wf("r.warehouse_id")}) AS in_inspection,
+          (SELECT count(*)::int FROM receipt r WHERE r.status = 'inspected' ${wf("r.warehouse_id")}) AS awaiting_grn,
+          (SELECT count(*)::int FROM putaway_task t WHERE t.status = 'open' ${wf("t.warehouse_id")}) AS putaway_open,
+          (SELECT count(*)::int FROM pick_list p WHERE p.status IN ('open','in_progress') ${wf("p.warehouse_id")}) AS picks_open`, wp);
+      out.stock = await one(pool, `SELECT
+          (SELECT coalesce(sum(v.total_value), 0) FROM item_valuation v WHERE true ${wf("v.warehouse_id")}) AS value,
+          (SELECT count(*)::int FROM item_warehouse_policy p JOIN item i ON i.id = p.item_id AND i.status = 'active'
+             WHERE p.deleted_at IS NULL ${wf("p.warehouse_id")} AND coalesce((SELECT sum(qty_free) FROM v_pickable_stock s WHERE s.item_id = p.item_id AND s.warehouse_id = p.warehouse_id), 0)
+                   <= coalesce(p.reorder_point, p.min_qty)) AS below_rop,
+          (SELECT count(*)::int FROM item_warehouse_policy p JOIN item i ON i.id = p.item_id AND i.status = 'active' AND i.ved_class = 'V'
+             WHERE p.deleted_at IS NULL ${wf("p.warehouse_id")} AND NOT EXISTS (SELECT 1 FROM v_pickable_stock s WHERE s.item_id = p.item_id AND s.warehouse_id = p.warehouse_id)) AS critical_stockouts,
+          (SELECT count(DISTINCT b.lot_id)::int FROM stock_balance b JOIN stock_lot l ON l.id = b.lot_id
+             WHERE b.qty_on_hand > 0 AND l.expiry_date <= current_date + 30 ${wf("b.warehouse_id")}) AS expiring_30d`, wp);
+      out.kpis = await one(pool, `SELECT
+          (SELECT round(extract(epoch FROM percentile_cont(0.5) WITHIN GROUP (ORDER BY delivered_at - submitted_at)) / 3600, 1)
+             FROM material_request m WHERE m.status = 'closed' AND m.delivered_at > now() - interval '90 days' ${wf("m.warehouse_id")}) AS cycle_time_h,
+          (SELECT round(extract(epoch FROM percentile_cont(0.5) WITHIN GROUP (ORDER BY putaway_completed_at - arrived_at)) / 3600, 1)
+             FROM receipt r WHERE r.putaway_completed_at > now() - interval '90 days' ${wf("r.warehouse_id")}) AS dock_to_stock_h,
+          (SELECT round(100.0 * sum(l.qty_issued) / nullif(sum(coalesce(l.qty_approved, l.qty_requested)), 0), 1)
+             FROM mr_line l JOIN material_request m ON m.id = l.mr_id WHERE l.deleted_at IS NULL AND m.status = 'closed' ${wf("m.warehouse_id")}) AS fill_rate_pct`, wp);
+      out.expiringLots = await many(pool, `SELECT i.id AS item_id, i.item_code, i.name_ar, i.name_en, l.lot_no, l.expiry_date, w.code AS warehouse_code, sum(b.qty_on_hand) AS qty
+          FROM stock_balance b JOIN stock_lot l ON l.id = b.lot_id JOIN item i ON i.id = b.item_id JOIN warehouse w ON w.id = b.warehouse_id
+         WHERE b.qty_on_hand > 0 AND l.expiry_date <= current_date + 30 ${wf("b.warehouse_id")}
+         GROUP BY i.id, l.lot_no, l.expiry_date, w.code ORDER BY l.expiry_date LIMIT 6`, wp);
+    }
+
     if (can(u, "audit.read")) {
       out.recentActivity = await many(pool, `SELECT a.id, a.at, a.table_name, a.action, a.record_id, a.changed_fields,
           u.name_ar AS actor_name_ar, u.name_en AS actor_name_en

@@ -7,6 +7,8 @@ import { api } from "../api";
 import { useAuth } from "../auth";
 import { Alert, Empty, Field, Icon, Loading, Modal, PageHead, Section, StatusBadge, Tabs, toast } from "../components/ui";
 import { AuditTimeline } from "./Audit";
+import { ItemStockTab, ItemLedgerTab } from "./Stock";
+import { useSearchParams } from "react-router-dom";
 import { errorText, fmtDate, fmtNum, fmtSar, useL } from "../util";
 
 export function ItemDetailPage() {
@@ -17,7 +19,8 @@ export function ItemDetailPage() {
   const { me, can } = useAuth();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const [tab, setTab] = useState("details");
+  const [sp] = useSearchParams();
+  const [tab, setTab] = useState(sp.get("tab") ?? "details");
   const [modal, setModal] = useState<null | { kind: string; payload?: any }>(null);
   const q = useQuery({ queryKey: ["item", id], queryFn: () => api.get(`/api/items/${id}`) });
   const it: any = q.data;
@@ -50,6 +53,8 @@ export function ItemDetailPage() {
 
   const tabs = [
     { id: "details", label: t("common.details") },
+    { id: "stock", label: t("ops.stock") },
+    ...(can("warehouse.read", "audit.read") ? [{ id: "ledger", label: t("ops.ledger") }] : []),
     { id: "identifiers", label: t("item.identifiers"), count: it.identifiers.length },
     { id: "uom", label: t("item.conversions"), count: it.conversions.length },
     { id: "subs", label: t("item.substitutes"), count: it.substitutes.length },
@@ -132,6 +137,8 @@ export function ItemDetailPage() {
           </>
         )}
         {tab === "history" && <AuditTimeline table="item" id={id!} />}
+        {tab === "stock" && <ItemStockTab itemId={id!} />}
+        {tab === "ledger" && <ItemLedgerTab itemId={id!} />}
       </section>
 
       {modal?.kind === "reason" && <ReasonModal action={modal.payload} onClose={() => setModal(null)}

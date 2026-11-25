@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { opsAr, opsEn } from "./i18n-ops";
 
 const ar = {
   app: { name: "نظام إدارة المستودعات ومراقبة المخزون", short: "إدارة المستودعات", org: "هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية",
@@ -119,11 +120,29 @@ const en: Dict = {
   errors: { forbidden: "You do not have access to this page", notFound: "Page not found" },
 };
 
+const EVENTS_AR: Record<string, string> = {
+  created: "إنشاء", submitted: "إرسال", validation_failed: "لم يجتز التحقق", approved: "اعتماد نهائي", approved_l1: "اعتماد المستوى 1", approved_l2: "اعتماد المستوى 2",
+  approved_l3: "اعتماد المستوى 3", rejected_l1: "رفض", rejected_l2: "رفض", returned_l1: "إعادة للتعديل", returned_l2: "إعادة للتعديل", reserved: "حجز المخزون",
+  pick_list_released: "إصدار قائمة التجهيز", picked: "اكتمال التجهيز", delivered_full: "تسليم كامل", delivered_partial: "تسليم جزئي", closed: "إغلاق",
+  short_closed: "إغلاق دون استكمال", cancelled: "إلغاء", overdue: "تجاوز مدة الخدمة",
+  arrived: "وصول الشحنة", quantity_checked: "فحص الكميات", inspection_started: "إحالة للجنة الفحص", inspection_recorded: "تسجيل نتائج الفحص",
+  inspection_agree: "توقيع عضو: موافق", inspection_object: "توقيع عضو: اعتراض", inspection_completed: "اكتمال الفحص", grn_posted: "ترحيل سند الاستلام",
+  putaway_completed: "اكتمال التخزين",
+};
+const EVENTS_EN: Record<string, string> = {
+  created: "Created", submitted: "Submitted", validation_failed: "Failed validation", approved: "Final approval", approved_l1: "Level 1 approved", approved_l2: "Level 2 approved",
+  approved_l3: "Level 3 approved", rejected_l1: "Rejected", rejected_l2: "Rejected", returned_l1: "Returned for revision", returned_l2: "Returned for revision",
+  reserved: "Stock reserved", pick_list_released: "Pick list released", picked: "Picking completed", delivered_full: "Delivered in full", delivered_partial: "Delivered partially",
+  closed: "Closed", short_closed: "Short-closed", cancelled: "Cancelled", overdue: "SLA breached", arrived: "Arrived", quantity_checked: "Quantity checked",
+  inspection_started: "Referred to committee", inspection_recorded: "Inspection results recorded", inspection_agree: "Member signed: agree",
+  inspection_object: "Member signed: object", inspection_completed: "Inspection completed", grn_posted: "GRN posted", putaway_completed: "Put-away completed",
+};
+
 const saved = (() => { try { return localStorage.getItem("wms.lang"); } catch { return null; } })();
 const initial = saved === "en" ? "en" : "ar";
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: ar }, en: { translation: en } },
+  resources: { ar: { translation: { ...ar, ...opsAr, events: EVENTS_AR } }, en: { translation: { ...en, ...opsEn, events: EVENTS_EN } } },
   lng: initial,
   fallbackLng: "ar",
   interpolation: { escapeValue: false },

@@ -275,6 +275,24 @@ export async function requestRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
+  // ---------------------------------------------------------------- user pickers for assignment dialogs
+  app.get("/api/committee-members", { preHandler: requirePerm("receipt.execute"), schema: { tags: ["inbound"] } }, async () => ({
+    data: await many(pool, `SELECT u.id, u.name_ar, u.name_en FROM app_user u JOIN user_role ur ON ur.user_id = u.id AND ur.is_active
+                              JOIN role r ON r.id = ur.role_id AND r.code = 'IRC' WHERE u.status = 'active' ORDER BY u.name_ar`),
+  }));
+  app.get("/api/delegates", { preHandler: requirePerm("delegation.own", "admin.delegations"), schema: { tags: ["requests"] } }, async () => ({
+    data: await many(pool, `SELECT DISTINCT u.id, u.name_ar, u.name_en FROM app_user u JOIN user_role ur ON ur.user_id = u.id AND ur.is_active
+                              JOIN role r ON r.id = ur.role_id AND r.code IN ('DM','WM','FIN','IRC','CDC','PLN')
+                             WHERE u.status = 'active' AND u.deleted_at IS NULL ORDER BY u.name_ar`),
+  }));
+  app.get("/api/pickers", { preHandler: requirePerm("issue.execute"), schema: { tags: ["requests"] } }, async (req) => {
+    const { warehouseId } = parse(z.object({ warehouseId: uuid }), req.query);
+    assertWarehouseInScope(req.user!, "issue.execute", warehouseId);
+    return { data: await many(pool, `SELECT DISTINCT u.id, u.name_ar, u.name_en FROM app_user u JOIN user_role ur ON ur.user_id = u.id AND ur.is_active
+                                       JOIN role_permission rp ON rp.role_id = ur.role_id AND rp.permission_key = 'pick.execute' AND rp.is_granted
+                                      WHERE u.status = 'active' AND (ur.warehouse_ids IS NULL OR $1 = ANY(ur.warehouse_ids)) ORDER BY u.name_ar`, [warehouseId]) };
+  });
+
   // ---------------------------------------------------------------- notifications
   app.get("/api/notifications", { preHandler: requireAuth, schema: { tags: ["requests"] } }, async (req) => ({
     unread: (await one(pool, "SELECT count(*)::int AS n FROM notification WHERE user_id = $1 AND read_at IS NULL", [req.user!.id]))!.n,

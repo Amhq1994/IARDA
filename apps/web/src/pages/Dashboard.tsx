@@ -40,8 +40,41 @@ export function DashboardPage() {
         </section>
       )}
 
+      {(d.operations || d.myApprovals > 0 || d.myRequests) && (
+        <section className="grid grid--kpi section">
+          {d.myApprovals > 0 && <Kpi icon="check" label={t("ops.approvals")} value={d.myApprovals} to="/requests?view=approvals" tone="gold" />}
+          {d.myRequests && !d.operations && <>
+            <Kpi icon="report" label={t("ops.myRequests")} value={d.myRequests.open} to="/requests?view=mine" />
+            <Kpi icon="download" label={t("mrStatus.ready_for_delivery")} value={d.myRequests.ready} to="/requests?view=mine" tone="gold" />
+          </>}
+          {d.operations && <>
+            <Kpi icon="report" label={t("ops.fulfil")} value={d.operations.to_fulfil} to="/requests?view=fulfil" />
+            <Kpi icon="alert" label={t("ops.overdue")} value={d.operations.overdue} to="/requests?view=all" tone={d.operations.overdue ? "gold" : undefined} />
+            <Kpi icon="download" label={`${t("rcvStatus.in_inspection")} / ${t("ops.grn")}`} value={`${d.operations.in_inspection} / ${d.operations.awaiting_grn}`} to="/inbound/receipts" />
+            <Kpi icon="map" label={`${t("ops.putaway")} / ${t("ops.picking")}`} value={`${d.operations.putaway_open} / ${d.operations.picks_open}`} to="/m" />
+          </>}
+        </section>
+      )}
+      {d.stock && (
+        <section className="grid grid--kpi section">
+          <Kpi icon="chart" label={t("ops.stockValue")} value={`${fmtNum(Math.round(d.stock.value))} ر.س`} to="/stock" />
+          <Kpi icon="alert" label={t("ops.belowRop")} value={d.stock.below_rop} to="/stock" tone="gold" />
+          <Kpi icon="shield" label={lang === "ar" ? "نفاد أصناف حرجة (V)" : "Critical stock-outs (V)"} value={d.stock.critical_stockouts} to="/stock" tone={d.stock.critical_stockouts ? "gold" : undefined} />
+          <Kpi icon="calendar" label={lang === "ar" ? "دفعات تنتهي خلال 30 يوماً" : "Lots expiring in 30 days"} value={d.stock.expiring_30d} />
+        </section>
+      )}
+
       <div className="grid grid--2-1">
         <div>
+          {d.expiringLots?.length > 0 && (
+            <Section icon="calendar" title={lang === "ar" ? "دفعات قاربت على الانتهاء" : "Lots nearing expiry"}>
+              <div className="table-wrap"><table className="table"><thead><tr><th>{t("ops.item")}</th><th>{t("ops.lot")}</th><th className="c">{t("ops.warehouse")}</th><th className="c">{t("ops.qty")}</th><th>{t("ops.expiry")}</th></tr></thead>
+                <tbody>{d.expiringLots.map((x: any, i: number) => (
+                  <tr key={i}><td><Link className="mono" to={`/items/${x.item_id}?tab=stock`}>{x.item_code}</Link><br />{L(x)}</td><td className="mono">{x.lot_no}</td>
+                    <td className="c mono">{x.warehouse_code}</td><td className="n">{fmtNum(x.qty)}</td><td style={{ color: "var(--iarda-error)" }}>{fmtDate(x.expiry_date, lang)}</td></tr>
+                ))}</tbody></table></div>
+            </Section>
+          )}
           {d.pendingApprovals && (
             <Section icon="check" title={t("item.pendingMine")}>
               {d.pendingApprovals.length === 0 ? <p className="muted">{t("common.empty")}</p> : (
@@ -125,8 +158,12 @@ export function DashboardPage() {
             {(lang === "ar"
               ? [["دقة المخزون", "≥ 98%"], ["معدل التلبية", "≥ 95%"], ["زمن دورة الطلب", "≤ 24 ساعة"], ["من الرصيف إلى التخزين", "≤ 48 ساعة"], ["المخزون الراكد", "≤ 10%"], ["نفاد الأصناف الحرجة", "= 0"], ["إشغال المساحات", "75–85%"]]
               : [["Inventory accuracy", "≥ 98%"], ["Fill rate", "≥ 95%"], ["Request cycle time", "≤ 24 h"], ["Dock-to-stock", "≤ 48 h"], ["Dead stock", "≤ 10%"], ["Critical stock-outs", "= 0"], ["Space utilisation", "75–85%"]]
-            ).map(([k, v]) => <div className="kpi-target" key={k}><span>{k}</span><b className="ltr">{v}</b></div>)}
-            <div style={{ marginTop: 12 }}><Alert>{t("dash.phaseNote")}</Alert></div>
+            ).map(([k, v], i) => {
+              const actual = d.kpis ? [null, d.kpis.fill_rate_pct != null ? `${d.kpis.fill_rate_pct}%` : null, d.kpis.cycle_time_h != null ? `${d.kpis.cycle_time_h} h` : null,
+                d.kpis.dock_to_stock_h != null ? `${d.kpis.dock_to_stock_h} h` : null, null, d.stock ? String(d.stock.critical_stockouts) : null, null][i] : null;
+              return <div className="kpi-target" key={k}><span>{k}</span><span>{actual && <b className="ltr">{actual}</b>}<span className="ltr muted">{actual ? `(${v})` : v}</span></span></div>;
+            })}
+            <div style={{ marginTop: 12 }}><Alert>{lang === "ar" ? "دقة المخزون والمخزون الراكد وإشغال المساحات تُحتسب بعد تفعيل الجرد (المرحلة الثالثة) والتخطيط (المرحلة الرابعة)." : "Inventory accuracy, dead stock and space utilisation are computed once counting (phase 3) and planning (phase 4) go live."}</Alert></div>
           </Section>
         </div>
       </div>
