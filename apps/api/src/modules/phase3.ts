@@ -39,19 +39,20 @@ export async function phase3Routes(app: FastifyInstance) {
   // ================================================================ approvals inbox (all document types)
   app.get("/api/approvals/inbox", { preHandler: requireAuth, schema: { tags: ["approvals"] } }, async (req) => ({
     data: await many(pool, `SELECT t.id, t.doc_type, t.doc_id, t.level, t.due_at, t.is_escalation, t.original_assignee_id, t.created_at,
-        coalesce(m.mr_no, tr.tr_no, a.adj_no, d.dsp_no, r.ret_no) AS doc_no,
-        coalesce(m.estimated_value, tr.estimated_value, a.value_abs, d.total_value, r.estimated_value) AS value
+        coalesce(m.mr_no, tr.tr_no, a.adj_no, d.dsp_no, r.ret_no, p.pr_no) AS doc_no,
+        coalesce(m.estimated_value, tr.estimated_value, a.value_abs, d.total_value, r.estimated_value, p.estimated_value) AS value
       FROM approval_task t
       LEFT JOIN material_request m ON t.doc_type = 'MR' AND m.id = t.doc_id
       LEFT JOIN transfer_order tr ON t.doc_type = 'TR' AND tr.id = t.doc_id
       LEFT JOIN adjustment a ON t.doc_type = 'ADJ' AND a.id = t.doc_id
       LEFT JOIN disposal d ON t.doc_type = 'DSP' AND d.id = t.doc_id
       LEFT JOIN return_doc r ON t.doc_type = 'RTV' AND r.id = t.doc_id
+      LEFT JOIN purchase_requisition p ON t.doc_type = 'PR' AND p.id = t.doc_id
       WHERE t.assignee_id = $1 AND t.status = 'pending' ORDER BY t.is_escalation DESC, t.due_at NULLS LAST`, [req.user!.id]),
   }));
 
   app.post("/api/approvals/:docType/:id/decision", { preHandler: requireAuth, schema: { tags: ["approvals"], summary: "Approve / reject / return a TR, ADJ, DSP or RTV" } }, async (req) => {
-    const { docType, id } = parse(z.object({ docType: z.enum(["TR", "ADJ", "DSP", "RTV"]), id: uuid }), req.params);
+    const { docType, id } = parse(z.object({ docType: z.enum(["TR", "ADJ", "DSP", "RTV", "PR"]), id: uuid }), req.params);
     const b = parse(z.object({ action: z.enum(["approve", "reject", "return"]), comment: z.string().max(1000).optional() }), req.body);
     return withTx(txCtx(req), (c) =>
       docType === "ADJ" ? cnt.decideAdjustment(c, req.user!.id, id, b.action, b.comment)

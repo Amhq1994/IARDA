@@ -124,8 +124,10 @@ export async function receiveTransfer(c: Tx, actorId: string, id: string, lines?
     if (q < Number(s.qty) - 1e-9) short = true;
     if (q <= 0) continue;
     const doc = { docType: "TR", docId: id, docNo: tr.tr_no, docLineId: s.transfer_line_id, itemId: s.item_id, lotId: s.lot_id };
-    await post(c, { ...doc, movement: "TR_RECEIVE_OUT", locationId: s.transit_location_id, status: "in_transit", qty: -q });
-    await post(c, { ...doc, movement: "TR_RECEIVE_IN", locationId: s.transit_location_id, qty: q, unitCost: Number(s.unit_cost) });
+    // value-neutral status change at the destination's average cost (the cost was blended in when stock entered transit)
+    const outId = await post(c, { ...doc, movement: "TR_RECEIVE_OUT", locationId: s.transit_location_id, status: "in_transit", qty: -q });
+    const outCost = Number((await one(c, "SELECT unit_cost FROM stock_ledger WHERE id = $1", [outId])).unit_cost);
+    await post(c, { ...doc, movement: "TR_RECEIVE_IN", locationId: s.transit_location_id, qty: q, unitCost: outCost });
     await c.query("UPDATE transfer_shipment SET qty_received = $2 WHERE id = $1", [s.id, q]);
     await c.query("UPDATE transfer_line SET qty_received = qty_received + $2 WHERE id = $1", [s.transfer_line_id, q]);
     const sug = await suggestBins(c, { itemId: s.item_id, warehouseId: tr.to_warehouse_id, qty: q, excludeLocationId: s.transit_location_id });

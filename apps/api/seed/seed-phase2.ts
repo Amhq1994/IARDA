@@ -22,7 +22,7 @@ const rnd = () => ((seedState = (seedState * 1103515245 + 12345) % 2147483648) /
 const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)];
 const days = (n: number) => new Date(Date.now() + n * 86400_000).toISOString().slice(0, 10);
 
-async function as<T>(c: C, userId: string, fn: () => Promise<T>): Promise<T> {
+export async function as<T>(c: C, userId: string, fn: () => Promise<T>): Promise<T> {
   await c.query("BEGIN");
   try {
     await c.query("SELECT set_config('app.user_id', $1, true), set_config('app.request_id', 'seed:phase2', true)", [userId]);
@@ -36,7 +36,7 @@ async function as<T>(c: C, userId: string, fn: () => Promise<T>): Promise<T> {
 }
 
 /** Minimal PNG encoder for a hand-drawn-looking signature (demo e-signatures). */
-function signaturePng(seed: number): string {
+export function signaturePng(seed: number): string {
   const w = 240, h = 80;
   const px = Buffer.alloc((w * 4 + 1) * h, 0);
   for (let y = 0; y < h; y++) px[y * (w * 4 + 1)] = 0;

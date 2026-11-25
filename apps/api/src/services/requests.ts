@@ -3,6 +3,8 @@
 // → Ready for Delivery → Delivered (Partial/Full) → Closed. Exceptions: Cancelled; Overdue (SLA escalation).
 import { many, one } from "../db/pool.ts";
 import { E, ApiError } from "../lib/errors.ts";
+import { issueCustody } from "./custody.ts";
+import { enqueue } from "./integrations.ts";
 import { docEvent, findItemId, findLocation, nextDocNo, notify, post, release, reserve, round4, setting, type Tx } from "./common.ts";
 import { actOnTask, buildChain, createTasks, type DocCtx } from "./workflow.ts";
 import { encryptBlob, sha256 } from "../lib/crypto.ts";
@@ -347,8 +349,10 @@ export async function deliver(c: Tx, actorId: string, id: string, b: { receivedB
     const ledgerId = await post(c, { docType: "MR", docId: id, docNo: mr.mr_no, docLineId: t.mr_line_id, movement: "GI", itemId: t.item_id,
       locationId: t.location_id, lotId: t.lot_id, qty: -qty, reservationId: t.res_status === "active" ? t.reservation_id : null });
     const led = await one(c, "SELECT unit_cost, value FROM stock_ledger WHERE id = $1", [ledgerId]);
-    await c.query(`INSERT INTO delivery_line (delivery_note_id, mr_line_id, pick_task_id, item_id, lot_id, location_id, qty, unit_cost, value, ledger_id)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [dn.id, t.mr_line_id, t.id, t.item_id, t.lot_id, t.location_id, qty, led.unit_cost, -led.value, ledgerId]);
+    const dl = await one(c, `INSERT INTO delivery_line (delivery_note_id, mr_line_id, pick_task_id, item_id, lot_id, location_id, qty, unit_cost, value, ledger_id)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`, [dn.id, t.mr_line_id, t.id, t.item_id, t.lot_id, t.location_id, qty, led.unit_cost, -led.value, ledgerId]);
+    // custody requests: every delivered asset is registered against the requester
+    if (mr.request_type === "custody") await issueCustody(c, { mr, deliveryLineId: dl.id, itemId: t.item_id, lotId: t.lot_id, qty, unitCost: Number(led.unit_cost) });
     await c.query("UPDATE pick_task SET qty_delivered = qty_delivered + $2, status = 'delivered' WHERE id = $1", [t.id, qty]);
     await c.query("UPDATE mr_line SET qty_issued = qty_issued + $2 WHERE id = $1", [t.mr_line_id, qty]);
     // short picks: give back what was reserved but not picked
@@ -361,6 +365,10 @@ export async function deliver(c: Tx, actorId: string, id: string, b: { receivedB
   await c.query(`UPDATE material_request SET status = $2, issued_value = issued_value + $3, delivered_at = now(),
                    closed_at = CASE WHEN $2 = 'closed' THEN now() END, is_overdue = CASE WHEN $2 = 'closed' THEN false ELSE is_overdue END WHERE id = $1`,
     [id, full ? "closed" : "partially_delivered", Math.round(total * 100) / 100]);
+  if (mr.work_order_ref) {
+    await enqueue(c, "cmms", "materials.issued", { type: "MR", id, no: mr.mr_no }, { mrNo: mr.mr_no, workOrderRef: mr.work_order_ref, dnNo, value: Math.round(total * 100) / 100,
+      complete: full, lines: tasks.map((t) => ({ itemId: t.item_id, qty: round4(Number(t.qty_picked) - Number(t.qty_delivered)) })) });
+  }
   await docEvent(c, "MR", id, full ? "delivered_full" : "delivered_partial", { from: "ready_for_delivery", to: full ? "delivered" : "partially_delivered", actorId,
     data: { dnNo, value: total } });
   if (full) await docEvent(c, "MR", id, "closed", { from: "delivered", to: "closed", actorId, comment: "journal entries are generated with valuation (phase 4)" });

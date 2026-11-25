@@ -19,6 +19,7 @@ const OWNER_PERMS: Record<string, { write: Permission[]; read: Permission[]; tab
   item: { write: ["item.manage"], read: ["item.read"], table: "item" },
   receipt: { write: ["inspection.execute", "receipt.execute"], read: ["receipt.execute", "inspection.execute", "grn.post", "po.read", "audit.read"], table: "receipt" },
   delivery_note: { write: [], read: ["request.create", "issue.execute", "audit.read"], table: "delivery_note" },
+  report_run: { write: [], read: ["report.view", "report.export"], table: "report_run" },
   disposal: { write: ["disposal.recommend"], read: ["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"], table: "disposal" },
 };
 const canAny = (u: any, perms: Permission[]) => perms.some((p) => can(u, p));

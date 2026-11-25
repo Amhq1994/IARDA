@@ -5,7 +5,7 @@ import { ApiError } from "../lib/errors.ts";
 import { notify, type Tx } from "./common.ts";
 
 /** Where each document type is opened in the web app (notifications link there). */
-export const DOC_LINK: Record<string, string> = { MR: "/requests", TR: "/transfers", ADJ: "/adjustments", DSP: "/disposals", RTV: "/returns" };
+export const DOC_LINK: Record<string, string> = { MR: "/requests", TR: "/transfers", ADJ: "/adjustments", DSP: "/disposals", RTV: "/returns", PR: "/planning/prs" };
 
 export interface DocCtx {
   docType: string; docId: string; docNo: string; requestType: string; value: number; orgUnitId: string; warehouseId: string;

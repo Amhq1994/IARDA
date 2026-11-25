@@ -9,6 +9,7 @@ import { hashPassword } from "../src/auth/routes.ts";
 import { CATALOG, UOMS } from "./catalog.ts";
 import { seedPhase2 } from "./seed-phase2.ts";
 import { seedPhase3 } from "./seed-phase3.ts";
+import { seedPhase4 } from "./seed-phase4.ts";
 
 export const DEMO_PASSWORD = "Iarda@2026!";
 
@@ -90,8 +91,6 @@ const SETTINGS: [string, unknown, string, string][] = [
   ["dates.primary_calendar", "hijri", "التقويم الأساسي في العرض", "Primary display calendar"],
   ["security.mfa_required_roles", [], "الأدوار التي تتطلب المصادقة الثنائية", "Roles that must use MFA"],
   ["dead_stock.months", 12, "مدة عدم الحركة لاعتبار المخزون راكداً (أشهر)", "Months without movement for dead stock"],
-  ["kpi.targets", { inventoryAccuracy: 98, fillRate: 95, cycleTimeHours: 24, dockToStockHours: 48, deadStockPct: 10, spaceUtilization: [75, 85] },
-    "مستهدفات مؤشرات الأداء", "KPI targets"],
 ];
 
 /** Valid EAN-13 with the Saudi GS1 prefix 628. */
@@ -112,6 +111,7 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
       await client.end();
       await seedPhase2(databaseUrl, log);
       await seedPhase3(databaseUrl, log);
+    await seedPhase4(databaseUrl, log);
       return;
     }
     await q("BEGIN");
@@ -294,7 +294,7 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
     }
 
     for (const [key, value, ar, en] of SETTINGS) {
-      await q("INSERT INTO setting (key, value, description_ar, description_en) VALUES ($1,$2,$3,$4)", [key, JSON.stringify(value), ar, en]);
+      await q("INSERT INTO setting (key, value, description_ar, description_en) VALUES ($1,$2,$3,$4) ON CONFLICT (key) DO NOTHING", [key, JSON.stringify(value), ar, en]);
     }
 
     await q("COMMIT");
@@ -302,6 +302,7 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
     await client.end();
     await seedPhase2(databaseUrl, log);
     await seedPhase3(databaseUrl, log);
+    await seedPhase4(databaseUrl, log);
     return;
   } catch (err) {
     await q("ROLLBACK").catch(() => {});

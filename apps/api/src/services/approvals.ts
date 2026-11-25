@@ -3,6 +3,7 @@
 import { one, many } from "../db/pool.ts";
 import { E } from "../lib/errors.ts";
 import { docEvent, notify, type Tx } from "./common.ts";
+import { enqueue } from "./integrations.ts";
 import { actOnTask, buildChain, createTasks, DOC_LINK, type DocCtx } from "./workflow.ts";
 
 export const DOC_TABLE: Record<string, { table: string; no: string; owner: string; label: [string, string] }> = {
@@ -10,6 +11,7 @@ export const DOC_TABLE: Record<string, { table: string; no: string; owner: strin
   ADJ: { table: "adjustment", no: "adj_no", owner: "created_by", label: ["تسوية مخزون", "Adjustment"] },
   DSP: { table: "disposal", no: "dsp_no", owner: "recommended_by", label: ["إتلاف/شطب", "Disposal"] },
   RTV: { table: "return_doc", no: "ret_no", owner: "created_by", label: ["إرجاع للمورد", "Return to vendor"] },
+  PR: { table: "purchase_requisition", no: "pr_no", owner: "requested_by", label: ["طلب شراء", "Purchase requisition"] },
 };
 
 export async function lockDoc(c: Tx, docType: string, id: string) {
@@ -59,6 +61,12 @@ export async function decideDoc(c: Tx, actorId: string, docType: string, id: str
     await c.query(`UPDATE ${m.table} SET status = 'approved' WHERE id = $1`, [id]);
     await docEvent(c, docType, id, "approved", { from: "pending_approval", to: "approved", actorId });
     await notify(c, [owner], { kind: "doc_approved", titleAr: `اعتُمد ${m.label[0]} ${doc[m.no]}`, titleEn: `${m.label[1]} ${doc[m.no]} approved`, link, docType, docId: id });
+    if (docType === "PR") {
+      const lines = await many(c, `SELECT i.item_code, i.name_ar, i.name_en, l.qty, u.code AS uom, l.est_unit_cost FROM pr_line l JOIN item i ON i.id = l.item_id
+                                   JOIN uom u ON u.id = i.base_uom_id WHERE l.pr_id = $1 ORDER BY l.line_no`, [id]);
+      await enqueue(c, "etimad", "requisition.approved", { type: "PR", id, no: doc.pr_no }, { prNo: doc.pr_no, estimatedValue: Number(doc.estimated_value),
+        neededBy: doc.needed_by, lines: lines.map((l) => ({ ...l, qty: Number(l.qty), est_unit_cost: Number(l.est_unit_cost) })) });
+    }
   }
   return { status: (await one(c, `SELECT status FROM ${m.table} WHERE id = $1`, [id])).status };
 }

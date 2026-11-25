@@ -1,12 +1,14 @@
 // Shared domain helpers: document numbers, posting-engine wrappers, notifications, document events.
 import type pg from "pg";
 import { one } from "../db/pool.ts";
+import { queueEmails } from "./mailer.ts";
 
 export type Tx = pg.PoolClient;
 
 const PREFIX: Record<string, string> = {
   MR: "MR", PO: "PO", ASN: "ASN", RCV: "RCV", GRN: "GRN", PUT: "PUT", PCK: "PCK", DN: "DN", INV: "INV",
   TR: "TR", ADJ: "ADJ", RET: "RET", RTV: "RTV", CNT: "CNT", DSP: "DSP",
+  PLN: "PLN", PR: "PR", JE: "JE", PRV: "PRV", CUS: "CUS", CL: "CL", CRT: "CRT",
 };
 
 export function hijriYear(d = new Date()): string {
@@ -63,6 +65,7 @@ export async function notify(c: Tx, userIds: (string | null | undefined)[], n: N
       `INSERT INTO notification (user_id, kind, title_ar, title_en, body_ar, body_en, link, doc_type, doc_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [id, n.kind, n.titleAr, n.titleEn, n.bodyAr ?? null, n.bodyEn ?? null, n.link ?? null, n.docType ?? null, n.docId ?? null]);
   }
+  if (ids.length) await queueEmails(c, ids, n);
 }
 
 export async function setting<T = any>(c: Tx | pg.Pool, key: string, fallback: T): Promise<T> {

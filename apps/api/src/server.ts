@@ -24,6 +24,9 @@ import { inboundRoutes } from "./modules/inbound.ts";
 import { requestRoutes } from "./modules/requests.ts";
 import { startScheduler } from "./jobs.ts";
 import { phase3Routes } from "./modules/phase3.ts";
+import { phase4Routes } from "./modules/phase4.ts";
+import { phase5Routes } from "./modules/phase5.ts";
+import { integrationRoutes } from "./modules/integration.ts";
 
 export async function buildServer(opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
   const app = Fastify({
@@ -49,7 +52,10 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   await app.register(swagger, {
     openapi: {
       info: { title: "IARDA WMS API", version: "1.0.0", description: "Warehouse Management & Inventory Control System — REST API" },
-      tags: [{ name: "auth" }, { name: "items" }, { name: "catalog" }, { name: "warehouses" }, { name: "inventory" }, { name: "inbound" }, { name: "requests" }, { name: "admin" }, { name: "audit" }],
+      tags: [{ name: "auth" }, { name: "items" }, { name: "catalog" }, { name: "warehouses" }, { name: "inventory" }, { name: "inbound" }, { name: "requests" }, { name: "transfers" }, { name: "returns" }, { name: "counting" }, { name: "approvals" },
+        { name: "planning" }, { name: "valuation" }, { name: "custody" }, { name: "reports" }, { name: "integration", description: "Machine-to-machine API (x-api-key)" },
+        { name: "admin" }, { name: "audit" }],
+      components: { securitySchemes: { apiKey: { type: "apiKey", in: "header", name: "x-api-key" }, session: { type: "apiKey", in: "cookie", name: "wms_session" } } },
     },
   });
   await app.register(swaggerUi, { routePrefix: "/api/docs" });
@@ -63,6 +69,7 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   // CSRF defence in depth (cookie is SameSite=Strict): state-changing calls must carry the API header.
   app.addHook("preHandler", async (req) => {
     if (!req.url.startsWith("/api/") || ["GET", "HEAD", "OPTIONS"].includes(req.method)) return;
+    if (req.url.startsWith("/api/integration/")) return; // machine clients: API key, no cookie (CSRF does not apply)
     if (req.headers["x-requested-with"] !== "iarda-wms") {
       throw new ApiError(403, "csrf", "طلب غير موثوق", "Missing X-Requested-With header");
     }
@@ -95,6 +102,9 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   await app.register(inboundRoutes);
   await app.register(requestRoutes);
   await app.register(phase3Routes);
+  await app.register(phase4Routes);
+  await app.register(phase5Routes);
+  await app.register(integrationRoutes);
   startScheduler(app);
 
   app.get("/api/health", { schema: { hide: true } }, async () => ({ ok: true }));

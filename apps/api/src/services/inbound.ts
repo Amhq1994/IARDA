@@ -270,7 +270,7 @@ export async function completePutaway(c: Tx, actorId: string, taskId: string, sc
     throw new ApiError(409, "override_reason_required", "الموقع يختلف عن الموقع المقترح — اذكر السبب", "Location differs from the suggestion — a reason is required",
       { suggested: t.suggested_location_id });
   }
-  const ok = await validateBin(c, { itemId: t.item_id, warehouseId: t.warehouse_id, locationId: loc.id, qty: Number(t.qty) });
+  const ok = await validateBin(c, { itemId: t.item_id, warehouseId: t.warehouse_id, locationId: loc.id, qty: Number(t.qty), taskId: t.id });
   if (!ok) throw new ApiError(409, "bin_not_suitable", "الخانة غير مناسبة (السعة أو التوافق أو موقوفة)", "Bin is not suitable (capacity, compatibility or blocked)");
   const doc = { docType: "PUTAWAY", docId: t.id, docNo: t.task_no, itemId: t.item_id, lotId: t.lot_id };
   await post(c, { ...doc, movement: "PUTAWAY_OUT", locationId: t.from_location_id, qty: -Number(t.qty) });

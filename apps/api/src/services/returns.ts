@@ -74,6 +74,7 @@ export async function receiveReturn(c: Tx, actorId: string, id: string, decision
     value += Number(l.qty) * cost;
   }
   await c.query("UPDATE return_doc SET status = 'received', estimated_value = $2, posted_at = now(), posted_by = $3 WHERE id = $1", [id, Math.round(value * 100) / 100, actorId]);
+  if (ret.custody_id) await c.query("UPDATE custody SET status = 'returned', returned_at = now() WHERE id = $1 AND status = 'return_pending'", [ret.custody_id]);
   await docEvent(c, "RET", id, "received", { from: "draft", to: "received", actorId });
 }
 

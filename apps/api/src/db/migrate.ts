@@ -57,6 +57,10 @@ async function applyGrants(client: pg.Client, role: string) {
       IF to_regclass('public.stock_ledger') IS NOT NULL THEN
         EXECUTE 'REVOKE INSERT, UPDATE ON stock_balance, stock_ledger, item_valuation, reservation FROM ${r}';
       END IF;
+      -- journalisation markers and the GL mapping are write-once / admin-only
+      IF to_regclass('public.journal_source') IS NOT NULL THEN
+        EXECUTE 'REVOKE UPDATE ON journal_source, status_gl_map FROM ${r}';
+      END IF;
     END $g$;
     GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${r};
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${r};
