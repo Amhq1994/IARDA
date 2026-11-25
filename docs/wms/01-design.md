@@ -1,6 +1,6 @@
 # IARDA Warehouse Management & Inventory Control System — Design for approval
 
-> Status: **Draft for approval** · Scope: Phase 0 (design) · Next: Phase 1 build after sign-off
+> Status: **Approved** (25 Nov 2026, with the proposed defaults in §8) · Phase 1 delivered — see `02-phase1.md`
 > Brand: follows `brand/` (IARDA identity) · Language: Arabic RTL default, English toggle
 
 This document contains the three items requested before coding:
@@ -19,7 +19,7 @@ It also states the architecture, workflow design, and phase plan, so that each l
 |---|---|---|
 | Database | **PostgreSQL 16** | Transactional integrity, row locks for stock posting, CHECK constraints, triggers for the immutable audit trail, JSONB for configurable workflows, partitioning for the ledger/audit tables |
 | API | **Node.js 22 + TypeScript + Fastify**, OpenAPI 3 generated from schemas | Fast, typed, open REST API (NFR); same language across the stack |
-| Data access | **Prisma** (schema + migrations) + raw SQL migrations for triggers, constraints, partitions | Typed queries; DB-level guarantees cannot be bypassed by application bugs |
+| Data access | **Plain SQL migrations + `pg`** (parameterised queries, Zod-validated inputs) — *changed from Prisma during Phase 1* | Full control of triggers, constraints and grants; no engine binaries to download in restricted networks; DB-level guarantees cannot be bypassed by application bugs |
 | Jobs | **BullMQ on Redis**: SLA escalation, scheduled reports, notifications, integration outbox, nightly ABC/XYZ & forecasts | Reliable retries, cron-style schedules |
 | Web app | **React 18 + Vite + TypeScript**, TanStack Router/Query, React Hook Form + Zod, i18next | Shared Zod schemas with the API; RTL-first via the IARDA theme (`brand/css/iarda.css`) |
 | Mobile | Same app as an installable **PWA** with `/m/*` task screens; camera scanning via `BarcodeDetector` + ZXing fallback; offline queue for scans | No separate app store deployment; works on Android/iOS browsers and rugged scanners (keyboard-wedge) |
@@ -35,7 +35,7 @@ apps/
 packages/
   shared/     Zod schemas, permission keys, enums, state machines, i18n keys
   reports/    → existing IARDA exporter (moved from /reports)
-  db/         Prisma schema, SQL migrations, seed (Arabic demo data)
+  (db)        SQL migrations + seed live in apps/api/src/db and apps/api/seed
 ```
 
 ---

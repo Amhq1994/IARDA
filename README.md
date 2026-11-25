@@ -1,4 +1,10 @@
-# IARDA — Brand Identity System
+# IARDA — Brand Identity System & Warehouse Management System
+
+This repository holds:
+- **WMS:** the Warehouse Management & Inventory Control System, in `apps/`, `packages/` and `docs/wms/`.
+  - Phase 1 is delivered; see [`docs/wms/02-phase1.md`](docs/wms/02-phase1.md) for setup, demo accounts and a walkthrough.
+  - The approved design is in [`docs/wms/01-design.md`](docs/wms/01-design.md).
+- **Brand layer:** the IARDA brand identity system that the WMS is built on (described below).
 
 Visual identity layer for the systems of the **Imam Abdulaziz bin Mohammed Royal Reserve Development Authority**
 (هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية) — <https://www.iarda.gov.sa/>.

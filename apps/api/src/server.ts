@@ -93,12 +93,14 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   const brandDir = new URL("../../../brand/", import.meta.url).pathname;
   await app.register(fastifyStatic, { root: brandDir, prefix: "/brand/", decorateReply: false });
   if (existsSync(config.webDist)) {
-    await app.register(fastifyStatic, { root: config.webDist, prefix: "/", wildcard: false });
+    await app.register(fastifyStatic, { root: config.webDist, prefix: "/", wildcard: true, index: false });
+    app.get("/", { schema: { hide: true } }, (_req, rep) => rep.header("cache-control", "no-cache").sendFile("index.html"));
     app.setNotFoundHandler((req, rep) => {
-      if (req.url.startsWith("/api/")) {
+      // API calls and missing files (anything with an extension) get a real 404; app routes get the SPA shell
+      if (req.url.startsWith("/api/") || /\.[a-z0-9]{2,5}(\?|$)/i.test(req.url)) {
         return rep.status(404).send({ error: { code: "not_found", message_ar: "غير موجود", message_en: "Not found" } });
       }
-      return rep.sendFile("index.html");
+      return rep.header("cache-control", "no-cache").sendFile("index.html");
     });
   }
   return app;
