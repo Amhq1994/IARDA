@@ -23,7 +23,7 @@
     "db:seed": "npm -w @iarda/api run db:seed",
     "dev:api": "npm -w @iarda/api run dev",
     "dev:web": "npm -w @iarda/web run dev",
-    "build": "npm -w @iarda/shared run build && npm -w @iarda/web run build && npm -w @iarda/api run build",
+    "build": "npm -w @iarda/web run build",
     "start": "npm -w @iarda/api run start",
     "test:api": "npm -w @iarda/api test",
     "typecheck": "npm -w @iarda/api run typecheck && npm -w @iarda/web run typecheck"

@@ -1,0 +1,16 @@
+**/node_modules
+.git
+storage
+storage-test
+backups
+apps/web/dist
+apps/demo/dist
+apps/demo/dist-snapshot
+reports/out
+out
+docs
+web
+*.log
+.env
+.env.*
+brand/fonts/official/*

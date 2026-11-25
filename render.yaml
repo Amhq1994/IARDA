@@ -1,0 +1,41 @@
+# Render Blueprint: IARDA Warehouse Management System (test deployment).
+# Render → New → Blueprint → choose this repository and branch. Render creates the database and the web service,
+# builds the Dockerfile, and generates the secrets below. Full steps: docs/wms/06-installation.md
+#
+# For testing with demonstration data only. Production data stays on the authority's internal server.
+services:
+  - type: web
+    name: iarda-wms
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter            # a persistent disk needs a paid instance; see the guide for the free option
+    region: frankfurt
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: wms-storage
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_OWNER_URL
+        fromDatabase:
+          name: iarda-wms-db
+          property: connectionString
+      - key: APP_DB_PASSWORD
+        generateValue: true
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true   # 256-bit, base64; never change it after data exists (attachments are encrypted with it)
+      - key: INTEGRATION_SECRET
+        generateValue: true
+      - key: SEED_MODE
+        value: demo           # loads the demonstration data once; set to "none" for an empty system
+      - key: SESSION_IDLE_MINUTES
+        value: "30"
+
+databases:
+  - name: iarda-wms-db
+    databaseName: iarda_wms
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"
+    ipAllowList: []           # no access from outside Render

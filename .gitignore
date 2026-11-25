@@ -14,3 +14,7 @@ apps/web/dist/
 backups/
 apps/demo/dist/
 apps/demo/dist-snapshot/
+
+.env
+.env.*
+!.env.example
