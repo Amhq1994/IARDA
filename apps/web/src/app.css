@@ -202,3 +202,7 @@ textarea.input { height: auto; min-height: 88px; padding-block: 10px; resize: ve
   .print-sheet { box-shadow: none; border: 0; }
   .page-head .btn, .page-head .badge { display: none !important; }
 }
+
+/* Login: the white panel only, centred on a white page (no green hero). */
+.login--solo { grid-template-columns: 1fr; justify-items: center; background: var(--iarda-white); }
+.login--solo .login__panel { width: 100%; max-width: 520px; }

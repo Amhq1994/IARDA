@@ -51,7 +51,7 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login">
+    <main className="login login--solo">
       <section className="login__panel" aria-labelledby="login-title">
         <img className="iarda-logo iarda-logo--lg" src="/brand/assets/logo/iarda-logo.png" alt={t("app.org")} />
         <h1 id="login-title" className="login__hello">{t("login.hello")}</h1>
@@ -106,12 +106,6 @@ export function LoginPage() {
           {t("app.copyright", { year: new Date().getFullYear() })} — {t("app.org")} ·{" "}
           <button className="btn btn--ghost btn--sm" type="button" onClick={() => setLanguage(lang === "ar" ? "en" : "ar", false)}>{t("app.switchLang")}</button>
         </p>
-      </section>
-      <section className="login__hero brand-surface" aria-hidden="true">
-        <img className="iarda-logo iarda-logo--lg" src="/brand/assets/logo/iarda-logo-white.png" alt="" style={{ marginBottom: "auto" }} />
-        <h2>{t("login.heroTitle")}</h2>
-        <p>{t("login.heroText")}</p>
-        <div className="year">{t("app.name")}</div>
       </section>
     </main>
   );
