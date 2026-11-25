@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>لوحة المعلومات — هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية</title>
+  <link rel="icon" href="../brand/assets/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="../brand/assets/favicon/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../brand/assets/favicon/apple-touch-icon.png">
+  <link rel="stylesheet" href="../brand/css/iarda.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Header: logo at the start edge (right in RTL) -->
+  <header class="app-header">
+    <button class="icon-btn menu-toggle" type="button" aria-label="القائمة">
+      <svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-menu"/></svg>
+    </button>
+    <a href="dashboard.html" class="iarda-logo-wrap">
+      <img class="iarda-logo" src="../brand/assets/logo/iarda-logo.png"
+           alt="هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية"
+           data-alt-en="Imam Abdulaziz bin Mohammed Royal Reserve Development Authority">
+    </a>
+    <span class="app-header__title" data-en="Camps Management System">نظام إدارة المخيمات</span>
+    <span class="app-header__spacer"></span>
+    <div class="app-header__actions">
+      <button class="btn btn--ghost btn--sm" type="button" data-lang-toggle>English</button>
+      <button class="icon-btn hide-sm" type="button" aria-label="بحث"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-search"/></svg></button>
+      <button class="icon-btn" type="button" aria-label="الإشعارات"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-bell"/></svg><span class="dot"></span></button>
+      <span class="user-chip"><span class="user-chip__avatar">ع</span><span data-en="Abdulaziz A.">عبدالعزيز ع.</span></span>
+    </div>
+  </header>
+
+  <!-- Sidebar: primary green -->
+  <nav class="app-sidebar" aria-label="القائمة الرئيسية">
+    <div class="nav-label" data-en="Main">الرئيسية</div>
+    <ul class="nav">
+      <li><a href="#" aria-current="page"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-dashboard"/></svg><span data-en="Dashboard">لوحة المعلومات</span></a></li>
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-camp"/></svg><span data-en="Camps">المخيمات</span><span class="badge badge--count">121</span></a></li>
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-map"/></svg><span data-en="Areas & maps">المناطق والخرائط</span></a></li>
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-leaf"/></svg><span data-en="Vegetation cover">الغطاء النباتي</span></a></li>
+    </ul>
+    <div class="nav-label" data-en="Reports">التقارير</div>
+    <ul class="nav">
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-report"/></svg><span data-en="Reports">التقارير</span></a></li>
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-chart"/></svg><span data-en="Indicators">المؤشرات</span></a></li>
+    </ul>
+    <div class="nav-label" data-en="Administration">الإدارة</div>
+    <ul class="nav">
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-users"/></svg><span data-en="Users">المستخدمون</span></a></li>
+      <li><a href="#"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-settings"/></svg><span data-en="Settings">الإعدادات</span></a></li>
+      <li><a href="login.html"><svg class="icon icon-flip"><use href="../brand/assets/icons/iarda-icons.svg#i-logout"/></svg><span data-en="Sign out">تسجيل الخروج</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="app-main">
+    <div class="page-head">
+      <div>
+        <div class="breadcrumb"><a href="#" data-en="Home">الرئيسية</a><svg class="icon icon-sm icon-flip"><use href="../brand/assets/icons/iarda-icons.svg#i-chevron"/></svg><span data-en="Dashboard">لوحة المعلومات</span></div>
+        <h1 class="page-title"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-dashboard"/></svg><span data-en="Northern camps — overview">المخيمات الشمالية — نظرة عامة</span></h1>
+        <p class="lead" data-en="Camp season 2026 · last updated 25 Nov 2026">موسم التخييم 2026 · آخر تحديث 25 نوفمبر 2026</p>
+      </div>
+      <div class="btn-group">
+        <a class="btn btn--secondary" href="../docs/samples/camps-report-ar.pdf"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-pdf"/></svg>PDF</a>
+        <a class="btn btn--secondary" href="../docs/samples/camps-report-ar.pptx"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-slides"/></svg>PowerPoint</a>
+        <a class="btn btn--primary" href="../docs/samples/camps-report-ar.xlsx"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-sheet"/></svg>Excel</a>
+      </div>
+    </div>
+
+    <section class="grid grid--kpi section" aria-label="المؤشرات">
+      <div class="card kpi">
+        <div class="kpi__top"><span class="kpi__label" data-en="Camps">عدد المخيمات</span><span class="kpi__icon"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-camp"/></svg></span></div>
+        <div class="kpi__value">121</div>
+        <div class="kpi__trend"><b>+12%</b> <span data-en="vs. last season">عن الموسم السابق</span></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="kpi__label" data-en="Tents">عدد الخيام</span><span class="kpi__icon"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-star"/></svg></span></div>
+        <div class="kpi__value">436</div>
+        <div class="kpi__trend"><b>3.6</b> <span data-en="tents per camp">خيمة لكل مخيم</span></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="kpi__label" data-en="Restrooms">دورات المياه</span><span class="kpi__icon"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-check"/></svg></span></div>
+        <div class="kpi__value">399</div>
+        <div class="kpi__trend"><b>3.3</b> <span data-en="per camp">لكل مخيم</span></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="kpi__label" data-en="Areas covered">المناطق المغطاة</span><span class="kpi__icon"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-map"/></svg></span></div>
+        <div class="kpi__value">11 <small data-en="areas">منطقة</small></div>
+        <div class="kpi__trend"><span data-en="Northern sector">القطاع الشمالي</span></div>
+      </div>
+    </section>
+
+    <div class="grid grid--2-1 section">
+      <section class="card">
+        <div class="card__head">
+          <h2 class="section-title"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-table"/></svg><span data-en="Total camps and facilities by area">المجموع الكلي للمخيمات ومحتوياتها</span></h2>
+          <button class="btn btn--ghost btn--sm" type="button"><svg class="icon icon-sm"><use href="../brand/assets/icons/iarda-icons.svg#i-filter"/></svg><span data-en="Filter">تصفية</span></button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr>
+              <th data-en="Area">المنطقة</th><th class="c" data-en="Camps">عدد المخيمات</th><th class="c" data-en="Tents">عدد الخيام</th><th class="c" data-en="Restrooms">دورات المياه</th><th class="c" data-en="Status">الحالة</th>
+            </tr></thead>
+            <tbody>
+              <tr><td data-en="Al-Rai">منطقة الريع</td><td class="n">4</td><td class="n">15</td><td class="n">13</td><td class="c"><span class="badge badge--success" data-en="Active">نشط</span></td></tr>
+              <tr><td data-en="Al-Faydah">منطقة الفيضة</td><td class="n">7</td><td class="n">26</td><td class="n">23</td><td class="c"><span class="badge badge--success" data-en="Active">نشط</span></td></tr>
+              <tr><td data-en="Al-Shuaib">منطقة الشعيب</td><td class="n">5</td><td class="n">18</td><td class="n">16</td><td class="c"><span class="badge badge--warning" data-en="Under review">قيد المراجعة</span></td></tr>
+              <tr class="is-highlight"><td data-en="Al-Sinaf">منطقة السناف</td><td class="n">24</td><td class="n">86</td><td class="n">79</td><td class="c"><span class="badge badge--success" data-en="Active">نشط</span></td></tr>
+              <tr><td data-en="Humaym">منطقة حميم</td><td class="n">18</td><td class="n">65</td><td class="n">59</td><td class="c"><span class="badge badge--success" data-en="Active">نشط</span></td></tr>
+              <tr><td data-en="Al-Butain">منطقة البطين</td><td class="n">17</td><td class="n">61</td><td class="n">56</td><td class="c"><span class="badge badge--error" data-en="Violation">مخالفة</span></td></tr>
+              <tr><td data-en="Hammam">منطقة حمام</td><td class="n">13</td><td class="n">47</td><td class="n">43</td><td class="c"><span class="badge badge--neutral" data-en="Closed">مغلق</span></td></tr>
+            </tbody>
+            <tfoot><tr><td data-en="Total">المجموع</td><td class="n">88</td><td class="n">318</td><td class="n">289</td><td></td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head"><h2 class="section-title"><svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-chart"/></svg><span data-en="Camps by area">المخيمات حسب المنطقة</span></h2></div>
+        <div class="bar-chart">
+          <div class="bar-row"><span data-en="Al-Sinaf">السناف</span><div class="bar-row__track"><div class="bar-row__fill" style="width:100%"></div></div><span class="bar-row__val">24</span></div>
+          <div class="bar-row"><span data-en="Humaym">حميم</span><div class="bar-row__track"><div class="bar-row__fill" style="width:75%"></div></div><span class="bar-row__val">18</span></div>
+          <div class="bar-row"><span data-en="Al-Butain">البطين</span><div class="bar-row__track"><div class="bar-row__fill" style="width:71%"></div></div><span class="bar-row__val">17</span></div>
+          <div class="bar-row"><span data-en="Hammam">حمام</span><div class="bar-row__track"><div class="bar-row__fill" style="width:54%"></div></div><span class="bar-row__val">13</span></div>
+          <div class="bar-row"><span data-en="Al-Rawdah">الروضة</span><div class="bar-row__track"><div class="bar-row__fill" style="width:50%"></div></div><span class="bar-row__val">12</span></div>
+          <div class="bar-row"><span data-en="Umm Talha">أم طلحة</span><div class="bar-row__track"><div class="bar-row__fill" style="width:33%"></div></div><span class="bar-row__val">8</span></div>
+        </div>
+        <hr class="divider">
+        <div class="alert alert--info">
+          <svg class="icon"><use href="../brand/assets/icons/iarda-icons.svg#i-info"/></svg>
+          <span data-en="Al-Sinaf holds 20% of all northern camps this season.">تستحوذ منطقة السناف على 20% من إجمالي المخيمات الشمالية هذا الموسم.</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <span class="app-footer__org" data-en="Imam Abdulaziz bin Mohammed Royal Reserve Development Authority">هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية</span>
+    <span data-en="© 2026 All rights reserved">© 2026 جميع الحقوق محفوظة</span>
+    <span class="app-footer__spacer"></span>
+    <!-- Place the approved Vision 2030 logo file at brand/assets/partners/vision2030.svg -->
+    <img class="vision2030" src="../brand/assets/partners/vision2030.svg" alt="رؤية المملكة 2030" data-alt-en="Saudi Vision 2030" onerror="this.remove()">
+  </footer>
+</div>
+<script src="i18n.js"></script>
+</body>
+</html>

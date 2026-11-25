@@ -1,0 +1,37 @@
+{
+  "name": "iarda-brand",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IARDA brand identity system: design tokens, UI theme, reference screens, email template and branded PDF/PPTX/Excel report exporters.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "iarda-report": "reports/cli.js"
+  },
+  "main": "reports/src/index.js",
+  "scripts": {
+    "build:tokens": "node scripts/build-tokens.mjs",
+    "build:favicons": "python3 scripts/build-favicons.py",
+    "preview": "node scripts/serve.mjs",
+    "report": "node reports/cli.js",
+    "samples": "node reports/cli.js reports/examples/camps-report.json --lang ar --out docs/samples && node reports/cli.js reports/examples/camps-report.json --lang en --out docs/samples",
+    "test": "node --test \"reports/test/*.test.js\"",
+    "build:raster": "node scripts/build-raster.js"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0",
+    "pdf-lib": "1.17.1",
+    "pptxgenjs": "4.0.1",
+    "jszip": "3.10.1"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  }
+}

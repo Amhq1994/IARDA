@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تسجيل الدخول — هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية</title>
+  <link rel="icon" href="../brand/assets/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="../brand/assets/favicon/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../brand/assets/favicon/apple-touch-icon.png">
+  <link rel="stylesheet" href="../brand/css/iarda.css">
+</head>
+<body>
+  <main class="login">
+    <section class="login__panel" aria-labelledby="login-title">
+      <img class="iarda-logo iarda-logo--lg" src="../brand/assets/logo/iarda-logo.png"
+           alt="هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية"
+           data-alt-en="Imam Abdulaziz bin Mohammed Royal Reserve Development Authority">
+
+      <h1 id="login-title" class="login__hello" data-en="Welcome">مرحباً بك</h1>
+      <p class="login__sub" data-en="Sign in to continue to the system">سجّل الدخول للمتابعة إلى النظام</p>
+
+      <form action="dashboard.html">
+        <div class="field">
+          <label for="u" data-en="Username or email">اسم المستخدم أو البريد الإلكتروني</label>
+          <div class="input-wrap">
+            <svg class="icon" aria-hidden="true"><use href="../brand/assets/icons/iarda-icons.svg#i-user"/></svg>
+            <input id="u" class="input" type="text" autocomplete="username" placeholder="name@iarda.gov.sa">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p" data-en="Password">كلمة المرور</label>
+          <div class="input-wrap">
+            <svg class="icon" aria-hidden="true"><use href="../brand/assets/icons/iarda-icons.svg#i-lock"/></svg>
+            <input id="p" class="input" type="password" autocomplete="current-password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="login__row">
+          <label class="check"><input type="checkbox"> <span data-en="Remember me">تذكرني</span></label>
+          <a href="#" data-en="Forgot password?">نسيت كلمة المرور؟</a>
+        </div>
+        <button class="btn btn--primary btn--block" type="submit" data-en="Sign in">تسجيل الدخول</button>
+      </form>
+
+      <div class="login__or" data-en="or">أو</div>
+      <a class="btn btn--secondary btn--block" href="dashboard.html">
+        <svg class="icon" aria-hidden="true"><use href="../brand/assets/icons/iarda-icons.svg#i-shield"/></svg>
+        <span data-en="Sign in with Nafath">الدخول عبر النفاذ الوطني الموحد</span>
+      </a>
+
+      <p class="login__legal">
+        <span data-en="© 2026 Imam Abdulaziz bin Mohammed Royal Reserve Development Authority. All rights reserved.">© 2026 هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية. جميع الحقوق محفوظة.</span>
+        · <button class="btn btn--ghost btn--sm" type="button" data-lang-toggle>English</button>
+      </p>
+    </section>
+
+    <section class="login__hero brand-surface" aria-hidden="true">
+      <h2 data-en="Sustainable environment for a better life">بيئة مستدامة لحياة أجود</h2>
+      <p data-en="The integrated management system of the Imam Abdulaziz bin Mohammed Royal Reserve Development Authority.">النظام الإداري المتكامل لهيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية.</p>
+      <div class="year">2026</div>
+    </section>
+  </main>
+  <script src="i18n.js"></script>
+</body>
+</html>

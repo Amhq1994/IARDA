@@ -1,0 +1,83 @@
+{
+  "id": "camps-report",
+  "title": { "ar": "تقرير المخيمات الشمالية", "en": "Northern Camps Report" },
+  "subtitle": { "ar": "موسم التخييم 2026", "en": "Camping season 2026" },
+  "year": 2026,
+  "classification": "internal",
+  "generatedBy": { "ar": "إدارة الرقابة البيئية", "en": "Environmental Compliance Dept." },
+  "sections": [
+    {
+      "type": "kpis",
+      "title": { "ar": "المؤشرات الرئيسية", "en": "Key indicators" },
+      "icon": "chart",
+      "items": [
+        { "label": { "ar": "عدد المخيمات", "en": "Camps" }, "value": 121, "icon": "camp" },
+        { "label": { "ar": "عدد الخيام", "en": "Tents" }, "value": 436, "icon": "star" },
+        { "label": { "ar": "دورات المياه", "en": "Restrooms" }, "value": 399, "icon": "check" },
+        { "label": { "ar": "المسالخ", "en": "Slaughter points" }, "value": 48, "icon": "shield" },
+        { "label": { "ar": "مناطق الشواء", "en": "Grill areas" }, "value": 204, "icon": "leaf" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": { "ar": "المجموع الكلي للمخيمات ومحتوياتها", "en": "Total camps and facilities by area" },
+      "icon": "table",
+      "columns": [
+        { "key": "area", "label": { "ar": "المنطقة", "en": "Area" }, "width": 3 },
+        { "key": "camps", "label": { "ar": "عدد المخيمات", "en": "Camps" } },
+        { "key": "tents", "label": { "ar": "عدد الخيام", "en": "Tents" } },
+        { "key": "restrooms", "label": { "ar": "دورات المياه", "en": "Restrooms" } },
+        { "key": "share", "label": { "ar": "النسبة", "en": "Share" }, "format": "percent" }
+      ],
+      "rows": [
+        { "area": { "ar": "منطقة الريع", "en": "Al-Rai" }, "camps": 4, "tents": 15, "restrooms": 13, "share": 0.033 },
+        { "area": { "ar": "منطقة الفيضة", "en": "Al-Faydah" }, "camps": 7, "tents": 26, "restrooms": 23, "share": 0.058 },
+        { "area": { "ar": "منطقة الشعيب", "en": "Al-Shuaib" }, "camps": 5, "tents": 18, "restrooms": 16, "share": 0.041 },
+        { "area": { "ar": "منطقة الحزم", "en": "Al-Hazm" }, "camps": 6, "tents": 22, "restrooms": 20, "share": 0.05 },
+        { "area": { "ar": "منطقة البطين", "en": "Al-Butain" }, "camps": 17, "tents": 61, "restrooms": 56, "share": 0.14 },
+        { "area": { "ar": "منطقة العرمة", "en": "Al-Aramah" }, "camps": 6, "tents": 22, "restrooms": 20, "share": 0.05 },
+        { "area": { "ar": "منطقة السناف", "en": "Al-Sinaf" }, "camps": 24, "tents": 86, "restrooms": 79, "share": 0.198, "_highlight": true },
+        { "area": { "ar": "منطقة حميم", "en": "Humaym" }, "camps": 18, "tents": 65, "restrooms": 59, "share": 0.149 },
+        { "area": { "ar": "منطقة الروضة", "en": "Al-Rawdah" }, "camps": 12, "tents": 43, "restrooms": 40, "share": 0.099 },
+        { "area": { "ar": "منطقة أم طلحة", "en": "Umm Talha" }, "camps": 8, "tents": 31, "restrooms": 30, "share": 0.066 },
+        { "area": { "ar": "منطقة حمام", "en": "Hammam" }, "camps": 13, "tents": 47, "restrooms": 43, "share": 0.107 }
+      ],
+      "totals": true
+    },
+    {
+      "type": "chart",
+      "title": { "ar": "توزيع المخيمات حسب المنطقة", "en": "Camps by area" },
+      "icon": "chart",
+      "chart": "bar",
+      "categories": [
+        { "ar": "السناف", "en": "Al-Sinaf" }, { "ar": "حميم", "en": "Humaym" }, { "ar": "البطين", "en": "Al-Butain" },
+        { "ar": "حمام", "en": "Hammam" }, { "ar": "الروضة", "en": "Al-Rawdah" }, { "ar": "أم طلحة", "en": "Umm Talha" },
+        { "ar": "الفيضة", "en": "Al-Faydah" }
+      ],
+      "series": [
+        { "name": { "ar": "المخيمات", "en": "Camps" }, "values": [24, 18, 17, 13, 12, 8, 7] }
+      ],
+      "note": { "ar": "تستحوذ منطقة السناف على قرابة 20% من إجمالي المخيمات الشمالية.", "en": "Al-Sinaf holds nearly 20% of all northern camps." }
+    },
+    {
+      "type": "chart",
+      "title": { "ar": "مكونات المخيمات", "en": "Camp facilities" },
+      "icon": "camp",
+      "chart": "doughnut",
+      "categories": [
+        { "ar": "الخيام", "en": "Tents" }, { "ar": "دورات المياه", "en": "Restrooms" }, { "ar": "مناطق الشواء", "en": "Grill areas" },
+        { "ar": "المسالخ", "en": "Slaughter points" }
+      ],
+      "series": [{ "name": { "ar": "العدد", "en": "Count" }, "values": [436, 399, 204, 48] }]
+    },
+    {
+      "type": "text",
+      "title": { "ar": "الملاحظات والتوصيات", "en": "Observations and recommendations" },
+      "icon": "report",
+      "paragraphs": [
+        { "ar": "ارتفع عدد المخيمات المرخّصة في القطاع الشمالي بنسبة 12% مقارنة بالموسم السابق، مع تركّز واضح في منطقتي السناف وحميم.", "en": "Licensed camps in the northern sector grew 12% on last season, concentrated in Al-Sinaf and Humaym." },
+        { "ar": "يُوصى بتعزيز الجولات الرقابية في منطقة البطين، ورفع الطاقة الاستيعابية لمرافق الخدمات في منطقة السناف.", "en": "We recommend more inspection rounds in Al-Butain and added service capacity in Al-Sinaf." }
+      ]
+    }
+  ]
+}

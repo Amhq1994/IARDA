@@ -1,0 +1,53 @@
+/*
+ * IARDA typography.
+ *
+ * Official (licensed) fonts — drop the files into brand/fonts/official/ using exactly
+ * these file names. Until they are present the browser falls through to the
+ * OFL-licensed IBM Plex Sans Arabic shipped in brand/fonts/fallback/, then Tajawal.
+ */
+
+/* ---- SF Mada (primary UI font) ---- */
+@font-face {
+  font-family: "SF Mada";
+  src: local("SF Mada-V2"), local("SF Mada"),
+       url("../fonts/official/SFMada-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SF Mada";
+  src: local("SF Mada-V2 Medium"), local("SF Mada Medium"),
+       url("../fonts/official/SFMada-Medium.woff2") format("woff2");
+  font-weight: 500 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SF Mada";
+  src: local("SF Mada-V2 Black"), local("SF Mada Black"),
+       url("../fonts/official/SFMada-Black.woff2") format("woff2");
+  font-weight: 800 900;
+  font-display: swap;
+}
+
+/* ---- Cocon Next Arabic (display: large titles, cover pages) ---- */
+@font-face {
+  font-family: "Cocon Next Arabic";
+  src: local("Cocon® Next Arabic Light"), local("CoconNextArabic-Light"),
+       url("../fonts/official/CoconNextArabic-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cocon Next Arabic";
+  src: local("Cocon® Next Arabic"), local("CoconNextArabic-Regular"),
+       url("../fonts/official/CoconNextArabic-Regular.woff2") format("woff2");
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+/* ---- Fallback: IBM Plex Sans Arabic (SIL OFL 1.1) ---- */
+@font-face { font-family: "IBM Plex Sans Arabic"; src: url("../fonts/fallback/IBMPlexSansArabic-Light.woff2") format("woff2"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans Arabic"; src: url("../fonts/fallback/IBMPlexSansArabic-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans Arabic"; src: url("../fonts/fallback/IBMPlexSansArabic-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans Arabic"; src: url("../fonts/fallback/IBMPlexSansArabic-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans Arabic"; src: url("../fonts/fallback/IBMPlexSansArabic-Bold.woff2") format("woff2"); font-weight: 700 900; font-display: swap; }
