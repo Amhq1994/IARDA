@@ -26,6 +26,8 @@ import { RequestsPage, RequestFormPage, RequestDetailPage, DeliveryNotePage } fr
 import { ReceiptsPage, ReceiptDetailPage, PurchaseOrdersPage, PurchaseOrderDetailPage } from "./pages/Inbound";
 import { StockPage } from "./pages/Stock";
 import { MobileHome, MobilePutawayList, MobilePutawayTask, MobilePickLists, MobilePickList, MobileLookup, MobileCountList, MobileCount, MobileMove } from "./pages/Mobile";
+import { PlanningPage, PrsPage, PrDetailPage, ValuationPage, JournalDetailPage, ProvisionDetailPage, CustodyPage, ClearancesPage, ClearanceDetailPage } from "./pages/Planning";
+import { KpisPage, ReportsPage, IntegrationsPage, LabelsPage, PortalPage } from "./pages/Insights";
 import { ApprovalsPage, TransfersPage, TransferDetailPage, ReturnsPage, ReturnDetailPage, CountsPage, CountDetailPage, AdjustmentsPage, AdjustmentDetailPage, DisposalsPage, DisposalDetailPage } from "./pages/Control";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e: any) => n < 1 && !(e?.status >= 400 && e?.status < 500), refetchOnWindowFocus: false } } });
@@ -99,6 +101,20 @@ const router = createBrowserRouter([
       { path: "adjustments/:id", element: <AdjustmentDetailPage /> },
       { path: "disposals", element: <Guard perms={["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"]}><DisposalsPage /></Guard> },
       { path: "disposals/:id", element: <DisposalDetailPage /> },
+      { path: "planning", element: <Guard perms={["planning.manage", "pr.create", "pr.approve", "valuation.manage", "audit.read"]}><PlanningPage /></Guard> },
+      { path: "planning/prs", element: <Guard perms={["pr.create", "pr.approve", "pr.process", "planning.manage", "audit.read"]}><PrsPage /></Guard> },
+      { path: "planning/prs/:id", element: <PrDetailPage /> },
+      { path: "valuation", element: <Guard perms={["valuation.manage", "journal.manage", "audit.read"]}><ValuationPage /></Guard> },
+      { path: "valuation/journals/:id", element: <Guard perms={["valuation.manage", "journal.manage", "audit.read"]}><JournalDetailPage /></Guard> },
+      { path: "valuation/provisions/:id", element: <Guard perms={["valuation.manage", "journal.manage", "audit.read"]}><ProvisionDetailPage /></Guard> },
+      { path: "custody", element: <CustodyPage /> },
+      { path: "clearances", element: <Guard perms={["clearance.request", "admin.users", "audit.read"]}><ClearancesPage /></Guard> },
+      { path: "clearances/:id", element: <ClearanceDetailPage /> },
+      { path: "kpis", element: <Guard perms={["dashboard.view", "report.view"]}><KpisPage /></Guard> },
+      { path: "reports", element: <Guard perms={["report.view", "report.export"]}><ReportsPage /></Guard> },
+      { path: "admin/integrations", element: <Guard perms={["admin.settings", "audit.read"]}><IntegrationsPage /></Guard> },
+      { path: "labels", element: <Guard perms={["warehouse.read"]}><LabelsPage /></Guard> },
+      { path: "portal", element: <Guard perms={["asn.read", "po.read"]}><PortalPage /></Guard> },
       { path: "*", element: <NotFound /> },
     ],
   },

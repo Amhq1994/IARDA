@@ -119,6 +119,9 @@ export async function seedPhase4(databaseUrl = config.databaseUrl, log = console
       const ret = await as(c, U["req.env"], () => cus.returnCustody(cc, U["req.env"], c2[0], { condition: "good", reason: "انتهاء المهمة الميدانية" }));
       await as(c, U["sk.riyadh"], () => rt.receiveReturn(cc, U["sk.riyadh"], ret.id, []));
     }
+    // demo realism: give the seeded custody requests plausible approval / delivery durations (instant seeding reads as 0 h)
+    await as(c, sys, () => c.query(`UPDATE material_request SET submitted_at = delivered_at - make_interval(hours => 8 + (abs(hashtext(mr_no)) % 28)),
+      approved_at = delivered_at - make_interval(hours => 2 + (abs(hashtext(mr_no)) % 6)) WHERE request_type = 'custody' AND status = 'closed'`));
     // backdate issue times a little so the custody register looks lived-in
     await as(c, sys, () => c.query("UPDATE custody SET issued_at = issued_at - make_interval(days => 3 + (abs(hashtext(custody_no)) % 40))"));
 

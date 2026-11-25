@@ -187,3 +187,18 @@ textarea.input { height: auto; min-height: 88px; padding-block: 10px; resize: ve
 .scan__row .input-wrap { min-width: 0; }
 .scan__row .btn { padding-inline: 12px; flex: none; }
 .kpi-target > span:last-child { display: inline-flex; gap: 10px; align-items: baseline; }
+
+/* ---- label sheet (A4, 3 × 8 labels of 70 × 36 mm) ---- */
+.label-sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.label { background: #fff; border: 1px dashed var(--iarda-sand); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; break-inside: avoid; }
+.label__top { display: flex; justify-content: space-between; font-size: 11px; color: var(--iarda-slate); }
+.label__top b { color: var(--iarda-primary-dark); }
+.label__bars svg { width: 100%; height: 46px; display: block; }
+.label__code { text-align: center; font-size: 14px; font-weight: 700; color: #000; direction: ltr; letter-spacing: .5px; }
+@media print {
+  @page { size: A4; margin: 8mm; }
+  .label-sheet { grid-template-columns: repeat(3, 70mm); gap: 0; }
+  .label { height: 36mm; width: 70mm; border: 0; border-radius: 0; padding: 3mm 4mm; box-sizing: border-box; }
+  .print-sheet { box-shadow: none; border: 0; }
+  .page-head .btn, .page-head .badge { display: none !important; }
+}

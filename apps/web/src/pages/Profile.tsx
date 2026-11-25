@@ -61,6 +61,7 @@ export function ProfilePage() {
               <button className={`btn ${lang === "en" ? "btn--primary" : "btn--secondary"}`} onClick={() => setLanguage("en", true)}>English</button>
             </div>
           </Section>
+          <EmailPrefs />
           <Section icon="users" title={t("profile.myRoles")}>
             <div className="chips" style={{ marginBottom: 12 }}>{me.roles.map((r) => <span key={r.code} className="chip">{(ROLES as any)[r.code]?.[lang] ?? r.code}</span>)}</div>
             <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13.5 }}>
@@ -105,6 +106,23 @@ function Delegations() {
           toast.success(t("common.saved")); qc.invalidateQueries({ queryKey: ["delegations"] });
         } catch (e) { toast.error(errorText(e, lang)); }
       }}>{t("ops.newDelegation")}</button></div>
+    </Section>
+  );
+}
+
+function EmailPrefs() {
+  const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["prefs"], queryFn: () => api.get("/api/me/preferences") });
+  return (
+    <Section icon="bell" title={t("prof.emailNotify")}>
+      <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <input type="checkbox" checked={!!q.data?.notify_email} disabled={!q.data} onChange={async (e) => {
+          try { await api.post("/api/me/preferences", { notifyEmail: e.target.checked }); qc.invalidateQueries({ queryKey: ["prefs"] }); toast.success(t("common.saved")); }
+          catch (err) { toast.error(errorText(err, i18n.language)); }
+        }} />
+        <span>{t("prof.emailNotify")}</span>{q.data?.email && <small className="muted mono">{q.data.email}</small>}
+      </label>
     </Section>
   );
 }

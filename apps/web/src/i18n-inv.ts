@@ -23,7 +23,11 @@ export const invAr = {
   },
   docType: { MR: "طلب مواد", TR: "طلب نقل", ADJ: "تسوية", DSP: "إتلاف", RTV: "إرجاع للمورد", RET: "مرتجع", CNT: "جرد" },
   docStatus: { draft: "مسودة", pending_approval: "بانتظار الاعتماد", approved: "معتمد", rejected: "مرفوض", in_transit: "في الطريق", received: "مستلم — فرق قيد التسوية",
-    closed: "مغلق", cancelled: "ملغى", shipped: "مشحون للمورد", posted: "مُرحّل", counting: "قيد العد", review: "مراجعة الفروقات" },
+    closed: "مغلق", cancelled: "ملغى", shipped: "مشحون للمورد", posted: "مُرحّل", counting: "قيد العد", review: "مراجعة الفروقات",
+    converted: "حُوّل إلى أمر شراء", exported: "مُرحّل إلى ERP", active: "قائمة", return_pending: "قيد الإرجاع", returned: "مُرجعة", lost: "مفقودة",
+    blocked: "متوقف (توجد موانع)", cleared: "مُخلى طرفه", reorder: "إعادة طلب", excess: "فائض", dead: "راكد", no_demand: "لا طلب", ok: "ضمن الحدود",
+    good: "محقق", warn: "قريب", bad: "غير محقق", na: "لا بيانات", pending: "قيد الإرسال", delivered: "مُسلّم", stub: "محفوظ (لا يوجد مستقبل)", failed: "فشل",
+    logged: "محفوظ بالسجل", sent: "مُرسل", open: "مفتوح", partially_received: "مستلم جزئياً" },
   stockStatus: { available: "متاح", quarantine: "حجر", damaged: "تالف", in_transit: "في الطريق", inspection: "تحت الفحص" },
 };
 
@@ -52,7 +56,11 @@ export const invEn: D = {
   },
   docType: { MR: "Material request", TR: "Transfer", ADJ: "Adjustment", DSP: "Disposal", RTV: "Return to vendor", RET: "Return", CNT: "Count" },
   docStatus: { draft: "Draft", pending_approval: "Pending approval", approved: "Approved", rejected: "Rejected", in_transit: "In transit", received: "Received — discrepancy pending",
-    closed: "Closed", cancelled: "Cancelled", shipped: "Shipped to vendor", posted: "Posted", counting: "Counting", review: "Variance review" },
+    closed: "Closed", cancelled: "Cancelled", shipped: "Shipped to vendor", posted: "Posted", counting: "Counting", review: "Variance review",
+    converted: "Converted to PO", exported: "Transferred to ERP", active: "Active", return_pending: "Return pending", returned: "Returned", lost: "Lost",
+    blocked: "Blocked", cleared: "Cleared", reorder: "Reorder", excess: "Excess", dead: "Dead", no_demand: "No demand", ok: "Within limits",
+    good: "On target", warn: "Near", bad: "Off target", na: "No data", pending: "Pending", delivered: "Delivered", stub: "Kept (no endpoint)", failed: "Failed",
+    logged: "Logged", sent: "Sent", open: "Open", partially_received: "Partially received" },
   stockStatus: { available: "Available", quarantine: "Quarantine", damaged: "Damaged", in_transit: "In transit", inspection: "Under inspection" },
 };
 

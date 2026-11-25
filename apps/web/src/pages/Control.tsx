@@ -16,15 +16,19 @@ const TONE: Record<string, string> = {
   received: "badge--warning", closed: "badge--neutral", cancelled: "badge--neutral", shipped: "badge--warning", posted: "badge--success",
   counting: "badge--warning", review: "badge--warning", available: "badge--success", quarantine: "badge--warning", damaged: "badge--error",
   open: "badge--neutral", counted: "badge--success", recount: "badge--warning", final: "badge--neutral",
+  converted: "badge--success", exported: "badge--neutral", active: "badge--success", return_pending: "badge--warning", returned: "badge--neutral",
+  lost: "badge--error", blocked: "badge--error", cleared: "badge--success", reorder: "badge--warning", excess: "badge--neutral", dead: "badge--error",
+  no_demand: "badge--neutral", ok: "badge--success", good: "badge--success", warn: "badge--warning", bad: "badge--error", na: "badge--neutral",
+  pending: "badge--warning", delivered: "badge--success", stub: "badge--neutral", failed: "badge--error", logged: "badge--neutral", sent: "badge--success",
 };
 
-function St({ s, dict = "docStatus" }: { s: string; dict?: string }) {
+export function St({ s, dict = "docStatus" }: { s: string; dict?: string }) {
   const { t } = useTranslation();
   return <span className={`badge ${TONE[s] ?? "badge--neutral"}`}>{t(`${dict}.${s}`, { defaultValue: t(`inv.${s}`, { defaultValue: s }) })}</span>;
 }
 
 /** Runs an action with a toast and refreshes the given queries. */
-function useAct(keys: string[][]) {
+export function useAct(keys: string[][]) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -42,7 +46,7 @@ function useAct(keys: string[][]) {
   };
 }
 
-function ReasonModal({ title, onClose, onSubmit, label }: { title: string; onClose: () => void; onSubmit: (r: string) => void; label?: string }) {
+export function ReasonModal({ title, onClose, onSubmit, label }: { title: string; onClose: () => void; onSubmit: (r: string) => void; label?: string }) {
   const { t } = useTranslation();
   const [r, setR] = useState("");
   return (
@@ -54,7 +58,7 @@ function ReasonModal({ title, onClose, onSubmit, label }: { title: string; onClo
 }
 
 /** Approve / reject / return buttons for the assigned approver (or delegate). */
-function DecisionBar({ docType, id, keys }: { docType: string; id: string; keys: string[][] }) {
+export function DecisionBar({ docType, id, keys }: { docType: string; id: string; keys: string[][] }) {
   const { t } = useTranslation();
   const a = useAct(keys);
   const [modal, setModal] = useState<"reject" | "return" | null>(null);
@@ -69,7 +73,7 @@ function DecisionBar({ docType, id, keys }: { docType: string; id: string; keys:
   );
 }
 
-function Chain({ tasks, revision }: { tasks: any[]; revision: number }) {
+export function Chain({ tasks, revision }: { tasks: any[]; revision: number }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const rev = tasks.filter((x) => x.revision === revision);
@@ -93,7 +97,7 @@ function Chain({ tasks, revision }: { tasks: any[]; revision: number }) {
   );
 }
 
-function Side({ d }: { d: any }) {
+export function Side({ d }: { d: any }) {
   const { t } = useTranslation();
   return (
     <div>
@@ -103,7 +107,7 @@ function Side({ d }: { d: any }) {
   );
 }
 
-function ItemPicker({ onPick }: { onPick: (it: any) => void }) {
+export function ItemPicker({ onPick }: { onPick: (it: any) => void }) {
   const { t } = useTranslation();
   const L = useL();
   const [q, setQ] = useState("");
@@ -122,9 +126,9 @@ function ItemPicker({ onPick }: { onPick: (it: any) => void }) {
   );
 }
 
-const useWarehouses = () => useQuery({ queryKey: ["warehouses"], queryFn: () => api.get("/api/warehouses") });
+export const useWarehouses = () => useQuery({ queryKey: ["warehouses"], queryFn: () => api.get("/api/warehouses") });
 
-function WhSelect({ value, onChange, label, exclude }: { value: string; onChange: (v: string) => void; label: string; exclude?: string }) {
+export function WhSelect({ value, onChange, label, exclude }: { value: string; onChange: (v: string) => void; label: string; exclude?: string }) {
   const L = useL();
   const w = useWarehouses();
   return (
@@ -134,7 +138,7 @@ function WhSelect({ value, onChange, label, exclude }: { value: string; onChange
   );
 }
 
-function ListCard({ head, rows, empty }: { head: ReactNode; rows: ReactNode; empty: boolean }) {
+export function ListCard({ head, rows, empty }: { head: ReactNode; rows: ReactNode; empty: boolean }) {
   return empty ? <Empty /> : <div className="table-wrap"><table className="table"><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>;
 }
 

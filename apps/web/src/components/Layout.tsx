@@ -28,13 +28,26 @@ const NAV: NavGroup[] = [
     { to: "/counts", icon: "table", key: "nav.counting", perms: ["count.plan", "count.execute", "count.review", "audit.read"] },
     { to: "/adjustments", icon: "sheet", key: "inv.adjustments", perms: ["adjustment.request", "adjustment.approve", "count.review", "valuation.manage", "audit.read"] },
     { to: "/disposals", icon: "alert", key: "inv.disposals", perms: ["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"] },
-    { to: "#planning", icon: "chart", key: "nav.planning", perms: ["planning.manage", "valuation.manage"], soon: true },
+  ] },
+  { key: "nav.planning", items: [
+    { to: "/planning", icon: "chart", key: "pl.planning", perms: ["planning.manage", "pr.create", "pr.approve", "audit.read"] },
+    { to: "/planning/prs", icon: "sheet", key: "pl.prs", perms: ["pr.create", "pr.approve", "pr.process"] },
+    { to: "/valuation", icon: "report", key: "val.valuation", perms: ["valuation.manage", "journal.manage", "audit.read"] },
+    { to: "/custody", icon: "users", key: "cus.custody" },
+    { to: "/clearances", icon: "shield", key: "cus.clearances", perms: ["clearance.request", "admin.users"] },
+  ] },
+  { key: "rep.reports", items: [
+    { to: "/kpis", icon: "star", key: "kpi.kpis", perms: ["dashboard.view", "report.view"] },
+    { to: "/reports", icon: "pdf", key: "rep.reports", perms: ["report.view", "report.export"] },
+    { to: "/portal", icon: "download", key: "portal.portal", perms: ["asn.read", "po.read"] },
+    { to: "/labels", icon: "table", key: "lbl.labels", perms: ["warehouse.manage", "receipt.execute"] },
   ] },
   { key: "nav.admin", items: [
     { to: "/users", icon: "users", key: "nav.users", perms: ["admin.users"] },
     { to: "/roles", icon: "shield", key: "nav.roles", perms: ["admin.roles", "admin.users", "audit.read"] },
     { to: "/settings", icon: "settings", key: "nav.settings", perms: ["admin.settings"] },
     { to: "/audit", icon: "lock", key: "nav.audit", perms: ["audit.read"] },
+    { to: "/admin/integrations", icon: "globe", key: "integ.integrations", perms: ["admin.settings", "audit.read"] },
   ] },
 ];
 

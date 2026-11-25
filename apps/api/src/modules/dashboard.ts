@@ -1,5 +1,6 @@
 // Role-aware dashboard summary for Phase 1 (master data & structure). Stock KPIs arrive with the posting engine (Phase 2+).
 import type { FastifyInstance } from "fastify";
+import { computeKpis } from "../services/kpis.ts";
 import { pool, one, many } from "../db/pool.ts";
 import { requirePerm, can, warehouseScope } from "../auth/context.ts";
 
@@ -78,18 +79,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
              WHERE p.deleted_at IS NULL ${wf("p.warehouse_id")} AND NOT EXISTS (SELECT 1 FROM v_pickable_stock s WHERE s.item_id = p.item_id AND s.warehouse_id = p.warehouse_id)) AS critical_stockouts,
           (SELECT count(DISTINCT b.lot_id)::int FROM stock_balance b JOIN stock_lot l ON l.id = b.lot_id
              WHERE b.qty_on_hand > 0 AND l.expiry_date <= current_date + 30 ${wf("b.warehouse_id")}) AS expiring_30d`, wp);
-      out.kpis = await one(pool, `SELECT
-          (SELECT round(extract(epoch FROM percentile_cont(0.5) WITHIN GROUP (ORDER BY delivered_at - submitted_at)) / 3600, 1)
-             FROM material_request m WHERE m.status = 'closed' AND m.delivered_at > now() - interval '90 days' ${wf("m.warehouse_id")}) AS cycle_time_h,
-          (SELECT round(extract(epoch FROM percentile_cont(0.5) WITHIN GROUP (ORDER BY putaway_completed_at - arrived_at)) / 3600, 1)
-             FROM receipt r WHERE r.putaway_completed_at > now() - interval '90 days' ${wf("r.warehouse_id")}) AS dock_to_stock_h,
-          (SELECT round(100.0 * sum(l.qty_issued) / nullif(sum(coalesce(l.qty_approved, l.qty_requested)), 0), 1)
-             FROM mr_line l JOIN material_request m ON m.id = l.mr_id WHERE l.deleted_at IS NULL AND m.status = 'closed' ${wf("m.warehouse_id")}) AS fill_rate_pct,
-          -- inventory accuracy: counted lines whose first count matched the system within tolerance, last 90 days
-          (SELECT round(100.0 * count(*) FILTER (WHERE abs(l.qty_count1 - l.qty_system1) <= l.qty_system1 * coalesce((s.value ->> coalesce(i.abc_class, 'C'))::numeric, 2) / 100)
-                        / nullif(count(*), 0), 1)
-             FROM count_line l JOIN count_plan p ON p.id = l.plan_id JOIN item i ON i.id = l.item_id LEFT JOIN setting s ON s.key = 'count.tolerance_pct'
-            WHERE l.qty_count1 IS NOT NULL AND l.counted1_at > now() - interval '90 days' ${wf("p.warehouse_id")}) AS accuracy_pct`, wp);
+      out.kpis = await computeKpis(pool, whScope === "all" ? "all" : (whScope as string[]));
       out.control = await one(pool, `SELECT
           (SELECT count(*)::int FROM transfer_order t WHERE t.status = 'in_transit' ${whScope === "all" ? "" : "AND (t.from_warehouse_id = ANY($1) OR t.to_warehouse_id = ANY($1))"}) AS in_transit,
           (SELECT count(*)::int FROM count_plan p WHERE p.status IN ('counting','review') ${wf("p.warehouse_id")}) AS counts_open,
