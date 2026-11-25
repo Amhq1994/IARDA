@@ -12,3 +12,5 @@ storage/
 storage-test/
 apps/web/dist/
 backups/
+apps/demo/dist/
+apps/demo/dist-snapshot/

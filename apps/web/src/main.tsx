@@ -1,6 +1,6 @@
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, createMemoryRouter, Navigate, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import "../../../brand/css/iarda.css";
@@ -50,7 +50,10 @@ function NotFound() {
   return <Empty text={t("errors.notFound")} />;
 }
 
-const router = createBrowserRouter([
+// the in-browser demo (Claude artifact) runs in a frame that owns the address bar → in-memory routing
+const makeRouter = (routes: Parameters<typeof createBrowserRouter>[0]) =>
+  import.meta.env.VITE_ARTIFACT === "1" ? createMemoryRouter(routes, { initialEntries: ["/"] }) : createBrowserRouter(routes);
+const router = makeRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/m", element: <RequireAuth><MobileHome /></RequireAuth> },
   { path: "/m/putaway", element: <RequireAuth><MobilePutawayList /></RequireAuth> },
@@ -119,6 +122,8 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+if (import.meta.env.VITE_ARTIFACT === "1") (window as any).__wmsRouter = router; // lets the demo bar and smoke tests navigate
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
