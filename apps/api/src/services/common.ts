@@ -6,6 +6,7 @@ export type Tx = pg.PoolClient;
 
 const PREFIX: Record<string, string> = {
   MR: "MR", PO: "PO", ASN: "ASN", RCV: "RCV", GRN: "GRN", PUT: "PUT", PCK: "PCK", DN: "DN", INV: "INV",
+  TR: "TR", ADJ: "ADJ", RET: "RET", RTV: "RTV", CNT: "CNT", DSP: "DSP",
 };
 
 export function hijriYear(d = new Date()): string {

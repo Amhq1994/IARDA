@@ -23,6 +23,7 @@ import { inventoryRoutes } from "./modules/inventory.ts";
 import { inboundRoutes } from "./modules/inbound.ts";
 import { requestRoutes } from "./modules/requests.ts";
 import { startScheduler } from "./jobs.ts";
+import { phase3Routes } from "./modules/phase3.ts";
 
 export async function buildServer(opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
   const app = Fastify({
@@ -93,6 +94,7 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   await app.register(inventoryRoutes);
   await app.register(inboundRoutes);
   await app.register(requestRoutes);
+  await app.register(phase3Routes);
   startScheduler(app);
 
   app.get("/api/health", { schema: { hide: true } }, async () => ({ ok: true }));

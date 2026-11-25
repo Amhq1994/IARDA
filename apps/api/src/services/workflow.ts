@@ -4,8 +4,11 @@ import { many, one } from "../db/pool.ts";
 import { ApiError } from "../lib/errors.ts";
 import { notify, type Tx } from "./common.ts";
 
+/** Where each document type is opened in the web app (notifications link there). */
+export const DOC_LINK: Record<string, string> = { MR: "/requests", TR: "/transfers", ADJ: "/adjustments", DSP: "/disposals", RTV: "/returns" };
+
 export interface DocCtx {
-  docType: "MR"; docId: string; docNo: string; requestType: string; value: number; orgUnitId: string; warehouseId: string;
+  docType: string; docId: string; docNo: string; requestType: string; value: number; orgUnitId: string; warehouseId: string;
   requesterId: string; hasCritical: boolean; categoryIds: string[]; revision: number;
 }
 
@@ -60,7 +63,11 @@ export async function buildChain(c: Tx, d: DocCtx): Promise<Level[]> {
     ids = await Promise.all(ids.map(async (id) => {
       if (id !== d.requesterId) return id;
       if (requester?.manager_id && requester.manager_id !== d.requesterId) return requester.manager_id;
-      return (await resolveRuleAssignees(c, { approver_kind: "warehouse_manager" }, d))[0];
+      const wm = (await resolveRuleAssignees(c, { approver_kind: "warehouse_manager" }, d))[0];
+      if (wm && wm !== d.requesterId) return wm;
+      // last resort: another holder of the same role (e.g. the other warehouse manager) — never the requester
+      const role = rule.approver_kind === "department_manager" ? "DM" : rule.approver_kind === "warehouse_manager" ? "WM" : rule.approver_role;
+      return role ? (await usersWithRole(c, role)).map((u) => u.id).find((u) => u !== d.requesterId) : undefined;
     }));
     ids = ids.filter((id) => id && id !== d.requesterId);
     if (!ids.length) {
@@ -108,7 +115,7 @@ export async function notifyPending(c: Tx, d: Pick<DocCtx, "docType" | "docId" |
   const ids = (await many(c, "SELECT assignee_id FROM approval_task WHERE doc_type = $1 AND doc_id = $2 AND revision = $3 AND level = $4 AND status = 'pending'",
     [d.docType, d.docId, d.revision, level])).map((r) => r.assignee_id);
   await notify(c, ids, { kind: "approval_required", titleAr: `طلب بانتظار اعتمادك — ${d.docNo}`, titleEn: `Request awaiting your approval — ${d.docNo}`,
-    link: `/requests/${d.docId}`, docType: d.docType, docId: d.docId });
+    link: `${DOC_LINK[d.docType] ?? "/requests"}/${d.docId}`, docType: d.docType, docId: d.docId });
 }
 
 /** Marks the actor's task; returns "next" (another level opened), "done" (chain complete) or "waiting" (same level still open). */

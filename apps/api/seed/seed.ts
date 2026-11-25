@@ -8,6 +8,7 @@ import { encrypt } from "../src/lib/crypto.ts";
 import { hashPassword } from "../src/auth/routes.ts";
 import { CATALOG, UOMS } from "./catalog.ts";
 import { seedPhase2 } from "./seed-phase2.ts";
+import { seedPhase3 } from "./seed-phase3.ts";
 
 export const DEMO_PASSWORD = "Iarda@2026!";
 
@@ -110,6 +111,7 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
       log("seed: phase 1 data present — skipping");
       await client.end();
       await seedPhase2(databaseUrl, log);
+      await seedPhase3(databaseUrl, log);
       return;
     }
     await q("BEGIN");
@@ -299,6 +301,7 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
     log(`seed: ${USERS.length} users, ${WAREHOUSES.length} warehouses, ${binCount} bins, ${n} items — demo password: ${DEMO_PASSWORD}`);
     await client.end();
     await seedPhase2(databaseUrl, log);
+    await seedPhase3(databaseUrl, log);
     return;
   } catch (err) {
     await q("ROLLBACK").catch(() => {});

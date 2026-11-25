@@ -19,6 +19,7 @@ const OWNER_PERMS: Record<string, { write: Permission[]; read: Permission[]; tab
   item: { write: ["item.manage"], read: ["item.read"], table: "item" },
   receipt: { write: ["inspection.execute", "receipt.execute"], read: ["receipt.execute", "inspection.execute", "grn.post", "po.read", "audit.read"], table: "receipt" },
   delivery_note: { write: [], read: ["request.create", "issue.execute", "audit.read"], table: "delivery_note" },
+  disposal: { write: ["disposal.recommend"], read: ["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"], table: "disposal" },
 };
 const canAny = (u: any, perms: Permission[]) => perms.some((p) => can(u, p));
 
@@ -27,7 +28,7 @@ export async function attachmentRoutes(app: FastifyInstance) {
     const file = await req.file();
     if (!file) throw E.invalid([{ path: "file", message: "required" }]);
     const fields = Object.fromEntries(Object.entries(file.fields).map(([k, v]: any) => [k, v?.value]));
-    const meta = parse(z.object({ ownerType: z.enum(["item", "receipt"]), ownerId: uuid,
+    const meta = parse(z.object({ ownerType: z.enum(["item", "receipt", "disposal"]), ownerId: uuid,
       category: z.enum(["image", "spec_sheet", "inspection_report", "minutes", "invoice", "other"]), isPrimary: z.coerce.boolean().default(false) }), fields);
     if (!canAny(req.user, OWNER_PERMS[meta.ownerType].write)) throw E.forbidden(OWNER_PERMS[meta.ownerType].write.join("|"));
     const buf = await file.toBuffer();
