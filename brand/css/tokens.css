@@ -1,0 +1,36 @@
+/* GENERATED from brand/tokens.json by scripts/build-tokens.mjs — do not edit by hand. */
+:root {
+  --iarda-primary: #005337;
+  --iarda-primary-dark: #014F37;
+  --iarda-primary-highlight: #00A86B;
+  --iarda-gold: #AE7029;
+  --iarda-slate: #5B7172;
+  --iarda-bg-light: #EBEEED;
+  --iarda-cream: #FFF7E7;
+  --iarda-cream-deep: #FFF1D5;
+  --iarda-sand: #E5DBC8;
+  --iarda-gray: #ADB8B9;
+  --iarda-white: #FFFFFF;
+  --iarda-success: #005337;
+  --iarda-warning: #AE7029;
+  --iarda-error: #A4483E;
+  --iarda-info: #5B7172;
+  --iarda-chart-1: #005337;
+  --iarda-chart-2: #AE7029;
+  --iarda-chart-3: #5B7172;
+  --iarda-chart-4: #E5DBC8;
+  --iarda-chart-5: #014F37;
+  --iarda-gradient: linear-gradient(135deg, #014F37 0%, #00A86B 48%, #005337 100%);
+  --iarda-font: "SF Mada", "SF Mada-V2", "IBM Plex Sans Arabic", "Tajawal", system-ui, sans-serif;
+  --iarda-font-display: "Cocon Next Arabic", "Cocon® Next Arabic", "IBM Plex Sans Arabic", "Tajawal", system-ui, sans-serif;
+  --iarda-radius: 8px;
+  --iarda-shadow-sm: 0 1px 2px rgba(1, 79, 55, 0.06), 0 1px 3px rgba(1, 79, 55, 0.08);
+  --iarda-shadow-md: 0 4px 16px rgba(1, 79, 55, 0.08);
+  --iarda-space-1: 4px;
+  --iarda-space-2: 8px;
+  --iarda-space-3: 12px;
+  --iarda-space-4: 16px;
+  --iarda-space-5: 24px;
+  --iarda-space-6: 32px;
+  --iarda-space-7: 48px;
+}

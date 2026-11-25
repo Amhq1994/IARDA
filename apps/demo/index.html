@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#005337" />
+    <title>نظام إدارة المستودعات</title>
+    <link rel="icon" type="image/png" href="./brand/assets/favicon/favicon-32.png" sizes="32x32" />
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; background: #F4F7F5; }
+      #boot { position: fixed; inset: 0; display: grid; place-content: center; gap: 18px; text-align: center; padding: 24px;
+        background: linear-gradient(135deg, #014F37, #005337 55%, #0b6b49); color: #fff; z-index: 50;
+        font: 15px/1.7 "IBM Plex Sans Arabic", system-ui, sans-serif; }
+      #boot img { width: 190px; max-width: 60vw; margin: 0 auto; filter: brightness(0) invert(1); }
+      #boot h1 { margin: 0; font-size: 20px; font-weight: 600; }
+      #boot .spin { width: 34px; height: 34px; margin: 0 auto; border: 3px solid #ffffff44; border-top-color: #E5DBC8; border-radius: 50%; animation: s 0.9s linear infinite; }
+      #boot small { color: #E5DBC8; max-width: 460px; }
+      @keyframes s { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #boot .spin { animation: none; } }
+      #demo-bar { position: fixed; inset-inline-start: 12px; bottom: 12px; z-index: 40; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        max-width: calc(100vw - 24px); background: #AE7029; color: #fff; border-radius: 999px; padding: 6px 8px 6px 14px;
+        font: 13px/1.4 "IBM Plex Sans Arabic", system-ui, sans-serif; box-shadow: 0 6px 18px #0003; }
+      #demo-bar b { font-weight: 700; }
+      #demo-bar button { border: 0; border-radius: 999px; padding: 6px 12px; font: inherit; cursor: pointer; background: #fff; color: #7a4d1a; min-height: 32px; }
+      #demo-bar button[data-close] { background: transparent; color: #fff; padding: 6px 8px; }
+      #demo-bar.is-min span, #demo-bar.is-min [data-reset] { display: none; }
+      @media print { #demo-bar { display: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="boot" role="status" aria-live="polite">
+      <img src="./brand/assets/logo/iarda-logo.png" alt="هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية" />
+      <h1>نظام إدارة المستودعات · نسخة العرض</h1>
+      <div class="spin" aria-hidden="true"></div>
+      <div id="boot-status">جارٍ التشغيل… / Starting…</div>
+      <small>يعمل النظام كاملاً داخل متصفحك (قاعدة بيانات PostgreSQL والخادم) — قد يستغرق الفتح الأول بضع ثوانٍ.<br />
+        The full system (PostgreSQL database and server) runs inside your browser — the first start takes a few seconds.</small>
+    </div>
+    <div id="root"></div>
+    <div id="demo-bar" hidden>
+      <b>نسخة عرض · Demo</b><span data-persist></span>
+      <button type="button" data-reset>إعادة ضبط البيانات</button>
+      <button type="button" data-close aria-label="تصغير / Minimise">↔</button>
+    </div>
+    <script type="module" src="./src/entry.ts"></script>
+  </body>
+</html>
