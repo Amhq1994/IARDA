@@ -1,0 +1,877 @@
+<title>نظام إدارة المستودعات — العرض التعريفي</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<script>document.documentElement.lang = "ar"; document.documentElement.dir = "rtl";</script>
+<style>
+/* Layout: one 16:9-free full-screen deck; each slide is a self-contained grid; the brand green is the ground of cover/section slides,
+   paper is the ground of content slides; gold marks the current state in every interactive diagram. */
+:root {
+  --paper: #f5f8f5;
+  --surface: #ffffff;
+  --ink: #12261d;
+  --muted: #56685f;
+  --line: #d9e3dc;
+  --green: #005337;
+  --green-2: #0b6b49;
+  --green-soft: #e3efe8;
+  --gold: #ae7029;
+  --gold-soft: #f6ecdf;
+  --sand: #e5dbc8;
+  --danger: #b42318;
+  --danger-soft: #fbe9e7;
+  --on-green: #ffffff;
+  --on-green-muted: #d9e8df;
+  --ground: linear-gradient(140deg, #014a31 0%, #005337 50%, #0b6b49 100%);
+  --shadow: 0 1px 2px rgba(10, 40, 28, .06), 0 8px 24px rgba(10, 40, 28, .06);
+  --f-display: "Noto Kufi Arabic", "IBM Plex Sans Arabic", Tahoma, sans-serif;
+  --f-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0c1813; --surface: #13231b; --ink: #e8f0eb; --muted: #9db1a6; --line: #24392e;
+    --green: #4fbf8f; --green-2: #6fd0a6; --green-soft: #183327; --gold: #e0a35c; --gold-soft: #33261a; --sand: #4a4234;
+    --danger: #f2897e; --danger-soft: #3a1c19; --on-green: #ffffff; --on-green-muted: #cfe3d7;
+    --ground: linear-gradient(140deg, #04291c 0%, #063f2a 55%, #0a573c 100%);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0c1813; --surface: #13231b; --ink: #e8f0eb; --muted: #9db1a6; --line: #24392e;
+  --green: #4fbf8f; --green-2: #6fd0a6; --green-soft: #183327; --gold: #e0a35c; --gold-soft: #33261a; --sand: #4a4234;
+  --danger: #f2897e; --danger-soft: #3a1c19; --on-green: #ffffff; --on-green-muted: #cfe3d7;
+  --ground: linear-gradient(140deg, #04291c 0%, #063f2a 55%, #0a573c 100%);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.75 var(--f-body); }
+* { box-sizing: border-box; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.45; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+.mono { font-family: var(--f-mono); direction: ltr; unicode-bidi: isolate; }
+
+/* ---------- deck ---------- */
+.deck { position: relative; height: 100%; overflow: hidden; }
+.slide {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  padding-block: clamp(28px, 6vh, 64px) 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  opacity: 0; visibility: hidden; transform: translateX(-28px);
+  transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s;
+}
+.slide.is-before { transform: translateX(28px); }
+.slide.is-active { opacity: 1; visibility: visible; transform: none; transition: opacity .45s ease, transform .45s ease; }
+.slide > .wrap { max-width: 1180px; margin-inline: auto; display: grid; gap: clamp(18px, 3vh, 30px); min-height: 100%; align-content: center; }
+.slide--ground { background: var(--ground); color: var(--on-green); }
+@media (prefers-reduced-motion: reduce) { .slide, .slide.is-active { transition: none; transform: none; } }
+
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--gold); display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ""; width: 26px; height: 2px; background: currentColor; border-radius: 2px; }
+.slide--ground .eyebrow { color: var(--sand); }
+.title { font-size: clamp(26px, 3.6vw, 42px); font-weight: 800; color: var(--green); }
+.slide--ground .title { color: var(--on-green); }
+.lead { font-size: clamp(16px, 1.5vw, 19px); color: var(--muted); max-width: 70ch; }
+.slide--ground .lead { color: var(--on-green-muted); }
+.head { display: grid; gap: 8px; }
+
+/* ---------- controls ---------- */
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; gap: 12px; pointer-events: none;
+}
+.bar > * { pointer-events: auto; }
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 21; background: transparent; padding-top: env(safe-area-inset-top, 0px); }
+.progress i { display: block; height: 4px; background: var(--gold); width: 0; transition: width .4s ease; margin-inline-start: 0; }
+.nav-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--green);
+  display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow);
+}
+.nav-btn:hover { border-color: var(--green); }
+.nav-btn:disabled { opacity: .35; cursor: default; }
+.nav-btn svg { width: 20px; height: 20px; }
+.counter { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); box-shadow: var(--shadow); cursor: pointer; font-variant-numeric: tabular-nums; }
+.counter b { color: var(--ink); font-weight: 600; }
+.bar .spacer { flex: 1; }
+.hint { font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+@media (max-width: 700px) { .hint { display: none; } }
+
+.index {
+  position: fixed; inset: 0; z-index: 30; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px);
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+}
+.index .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 16px; }
+.index ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.index button.item { width: 100%; text-align: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+.index button.item:hover, .index button.item[aria-current="true"] { border-color: var(--gold); }
+.index .n { font-family: var(--f-mono); color: var(--gold); font-size: 13px; }
+.index .close { justify-self: start; }
+
+/* ---------- cover ---------- */
+.cover { align-content: space-between !important; gap: 40px !important; }
+.cover .logo { width: clamp(150px, 18vw, 220px); }
+.cover h1 { font-size: clamp(34px, 5.6vw, 72px); font-weight: 800; line-height: 1.3; max-width: 15ch; }
+.cover .sub { font-size: clamp(17px, 1.7vw, 22px); color: var(--on-green-muted); max-width: 52ch; }
+.cover .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 15px; color: var(--on-green-muted); border-top: 1px solid rgba(255,255,255,.18); padding-top: 18px; }
+.cover .meta b { color: var(--on-green); font-weight: 600; }
+.motif { position: absolute; inset: 0; pointer-events: none; opacity: .14; }
+
+/* ---------- goal ---------- */
+.statement { font-family: var(--f-display); font-weight: 700; font-size: clamp(22px, 2.8vw, 34px); line-height: 1.6; color: var(--ink); max-width: 30ch; }
+.statement em { font-style: normal; color: var(--gold); }
+.goals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.goal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 6px; align-content: start; }
+.goal h3 { font-size: 17px; color: var(--green); }
+.goal p { font-size: 15px; color: var(--muted); }
+.goal svg { width: 28px; height: 28px; color: var(--gold); }
+.note { font-size: 14px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tag { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--green-soft); color: var(--green); }
+.tag--gold { background: var(--gold-soft); color: var(--gold); }
+
+/* ---------- problems ---------- */
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+.plist { display: grid; gap: 8px; }
+.pbtn { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; text-align: start; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 15.5px; font-weight: 500; }
+.pbtn .k { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); font-size: 13px; font-weight: 700; }
+.pbtn[aria-selected="true"] { border-color: var(--green); background: var(--green-soft); }
+.pbtn[aria-selected="true"] .k { background: var(--green); color: var(--on-green); }
+.ppanel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 16px; box-shadow: var(--shadow); position: sticky; top: 0; }
+.ba { display: grid; gap: 6px; padding: 14px 16px; border-radius: 12px; }
+.ba small { font-size: 12.5px; font-weight: 700; letter-spacing: .03em; }
+.ba--before { background: var(--danger-soft); }
+.ba--before small { color: var(--danger); }
+.ba--after { background: var(--green-soft); }
+.ba--after small { color: var(--green); }
+.ba p { font-size: 16px; }
+.ppanel .how { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- about ---------- */
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.fig { border-top: 3px solid var(--gold); padding-top: 10px; display: grid; gap: 2px; }
+.fig b { font-family: var(--f-display); font-size: clamp(28px, 3vw, 40px); color: var(--green); line-height: 1.3; font-variant-numeric: tabular-nums; }
+.fig span { font-size: 14px; color: var(--muted); }
+.whs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.wh { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 4px; }
+.wh .code { font-family: var(--f-mono); font-size: 13px; color: var(--gold); }
+.wh h3 { font-size: 16px; color: var(--ink); }
+.wh p { font-size: 13.5px; color: var(--muted); }
+
+/* ---------- how it works ---------- */
+.flow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; position: relative; }
+@media (max-width: 900px) { .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fstep { position: relative; text-align: start; padding: 14px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); cursor: pointer; display: grid; gap: 6px; align-content: start; min-height: 112px; }
+.fstep .num { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.fstep svg { width: 26px; height: 26px; color: var(--green); }
+.fstep b { font-size: 15px; font-weight: 600; line-height: 1.5; }
+.fstep[aria-selected="true"] { background: var(--green); border-color: var(--green); color: var(--on-green); }
+.fstep[aria-selected="true"] svg, .fstep[aria-selected="true"] .num { color: var(--sand); }
+.fdetail { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; box-shadow: var(--shadow); }
+@media (max-width: 760px) { .fdetail { grid-template-columns: 1fr; } }
+.fdetail h3 { font-size: 20px; color: var(--green); }
+.fdetail ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 6px; }
+.fdetail .side { display: grid; gap: 12px; align-content: start; }
+.kv { display: grid; gap: 4px; }
+.kv small { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- modules ---------- */
+.mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.mod { display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: start; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.mod .ic { width: 38px; height: 38px; border-radius: 10px; background: var(--green-soft); color: var(--green); display: grid; place-items: center; }
+.mod .ic svg { width: 20px; height: 20px; }
+.mod h3 { font-size: 15.5px; font-family: var(--f-body); font-weight: 600; }
+.mod p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.mod--key { border-color: var(--gold); }
+.mod--key .ic { background: var(--gold-soft); color: var(--gold); }
+
+/* ---------- audience ---------- */
+.groups { display: grid; gap: 14px; }
+.group { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 700px) { .group { grid-template-columns: 1fr; gap: 6px; } }
+.group > small { font-size: 13px; font-weight: 700; color: var(--gold); padding-top: 8px; }
+.roles { display: flex; flex-wrap: wrap; gap: 8px; }
+.role { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-size: 15px; font-weight: 500; }
+.role[aria-selected="true"] { background: var(--green); border-color: var(--green); color: var(--on-green); }
+.rpanel { background: var(--gold-soft); border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px; min-height: 120px; }
+.rpanel h3 { font-size: 19px; color: var(--ink); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.rpanel h3 .mono { font-size: 13px; color: var(--gold); }
+.rpanel ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+
+/* ---------- lifecycle ---------- */
+.life { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 18px; box-shadow: var(--shadow); }
+.track { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding-bottom: 6px; }
+.state { flex: 1 0 104px; display: grid; justify-items: center; gap: 8px; position: relative; padding: 0 4px; cursor: pointer; background: none; border: 0; }
+.state::before { content: ""; position: absolute; top: 17px; inset-inline-start: 50%; width: 100%; height: 3px; background: var(--line); z-index: 0; }
+.state:last-child::before { display: none; }
+.state .dot { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--line); background: var(--surface); display: grid; place-items: center; position: relative; z-index: 1; font-family: var(--f-mono); font-size: 13px; color: var(--muted); transition: all .3s ease; }
+.state span { font-size: 14px; font-weight: 600; text-align: center; line-height: 1.5; }
+.state small { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+.state.done .dot { background: var(--green); border-color: var(--green); color: var(--on-green); }
+.state.done::before { background: var(--green); }
+.state.cur .dot { background: var(--gold); border-color: var(--gold); color: #fff; box-shadow: 0 0 0 6px var(--gold-soft); }
+.branches { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.branch { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.branch b { font-size: 15px; }
+.branch p { font-size: 13.5px; color: var(--muted); }
+.branch--bad b { color: var(--danger); }
+.branch--warn b { color: var(--gold); }
+.statebox { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--green-soft); border-radius: 12px; padding: 14px 16px; }
+@media (max-width: 640px) { .statebox { grid-template-columns: 1fr; } }
+.statebox p { font-size: 15.5px; }
+.statebox b { color: var(--green); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; padding: 9px 16px; border: 1px solid var(--green); background: var(--green); color: var(--on-green); cursor: pointer; font-weight: 600; font-size: 15px; white-space: nowrap; text-decoration: none; }
+.btn--ghost { background: transparent; color: var(--green); }
+.btn svg { width: 18px; height: 18px; }
+.doa { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.lvl { border-inline-start: 3px solid var(--green); padding: 4px 12px; display: grid; gap: 2px; }
+.lvl b { font-size: 15px; }
+.lvl span { font-size: 13.5px; color: var(--muted); }
+.lvl--urg { border-color: var(--gold); }
+
+/* ---------- examples ---------- */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 14px; cursor: pointer; font-weight: 600; font-size: 15px; display: grid; gap: 0; text-align: start; }
+.tab small { font-weight: 400; font-size: 12.5px; color: var(--muted); }
+.tab[aria-selected="true"] { border-color: var(--gold); background: var(--gold-soft); }
+.scenario { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .scenario { grid-template-columns: 1fr; } }
+.ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 12px; box-shadow: var(--shadow); }
+.ticket .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ticket .no { font-family: var(--f-mono); font-size: 14px; color: var(--gold); }
+.ticket dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14.5px; }
+.ticket dt { color: var(--muted); }
+.ticket dd { margin: 0; font-weight: 500; }
+.lines { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 6px; font-size: 14px; }
+.lines div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.lines .mono { font-size: 12.5px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: var(--gold-soft); color: var(--gold); transition: all .3s ease; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.ok { background: var(--green-soft); color: var(--green); }
+.pill.bad { background: var(--danger-soft); color: var(--danger); }
+.steps { display: grid; gap: 8px; }
+.step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid transparent; opacity: .45; transition: all .3s ease; cursor: pointer; background: none; text-align: start; width: 100%; }
+.step .who { width: 34px; height: 34px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--muted); }
+.step b { font-size: 15.5px; display: block; }
+.step .actor { font-size: 13px; color: var(--gold); font-weight: 600; }
+.step p { font-size: 14.5px; color: var(--muted); margin-top: 2px; }
+.step.seen { opacity: .8; }
+.step.seen .who { background: var(--green-soft); color: var(--green); }
+.step.cur { opacity: 1; background: var(--surface); border-color: var(--line); box-shadow: var(--shadow); }
+.step.cur .who { background: var(--green); color: var(--on-green); }
+.step.branch-step.cur .who { background: var(--danger); }
+.ctrl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ctrl .count { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- other cycles ---------- */
+.mini { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+.mini .c { padding: 7px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 14.5px; font-weight: 500; }
+.mini .c.key { border-color: var(--gold); background: var(--gold-soft); }
+.mini .c.bad { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+.mini .arrow { color: var(--muted); font-size: 16px; }
+.cycle-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+.cycle-card h3 { font-size: 19px; color: var(--green); }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.rule { background: var(--paper); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.rule b { display: block; font-size: 13px; color: var(--gold); margin-bottom: 2px; }
+
+/* ---------- controls/security ---------- */
+.sec { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.secc { padding: 16px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 6px; align-content: start; }
+.secc h3 { font-size: 16.5px; font-family: var(--f-body); font-weight: 700; color: var(--green); display: flex; gap: 8px; align-items: center; }
+.secc h3 svg { width: 20px; height: 20px; color: var(--gold); flex: none; }
+.secc p { font-size: 14.5px; color: var(--muted); }
+.sod { display: grid; gap: 6px; }
+.sod div { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; font-size: 14px; }
+.sod .x { color: var(--danger); font-weight: 700; }
+
+/* ---------- KPIs ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 4px; }
+.kpi small { font-size: 13.5px; color: var(--muted); }
+.kpi b { font-family: var(--f-display); font-size: 26px; color: var(--green); font-variant-numeric: tabular-nums; direction: ltr; text-align: end; unicode-bidi: plaintext; }
+.kpi .gauge { height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.kpi .gauge i { display: block; height: 100%; background: var(--gold); border-radius: 6px; }
+.reports { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- next steps ---------- */
+.road { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; counter-reset: r; }
+.road li { list-style: none; padding: 14px 14px 14px 10px; border-top: 3px solid rgba(255,255,255,.25); display: grid; gap: 4px; position: relative; }
+.road li::before { counter-increment: r; content: counter(r, arabic-indic); font-family: var(--f-display); font-size: 24px; color: var(--sand); }
+.road li.now { border-color: var(--sand); }
+.road b { font-size: 16px; }
+.road p { font-size: 14px; color: var(--on-green-muted); }
+.end-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.slide--ground .btn { background: var(--on-green); color: #005337; border-color: var(--on-green); }
+.slide--ground .btn--ghost { background: transparent; color: var(--on-green); border-color: rgba(255,255,255,.5); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></symbol>
+  <symbol id="i-shelf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M20 3v18M4 9h16M4 15h16M7 6h4M13 12h4M8 18h3"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7l-4-4Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M7 9v6M10 9v6M13 9v6M16 9v6"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c2.8 0 5 2.2 5 5"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1"/><path d="M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12Z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></symbol>
+  <symbol id="i-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="2.6"/><path d="M8 17c.6-1.8 2.1-3 4-3s3.4 1.2 4 3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2ZM10 21h4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"/><path d="M5 15a8 8 0 1 0 2-8.5L4 10"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+</svg>
+
+<div class="progress" aria-hidden="true"><i id="progress"></i></div>
+
+<main class="deck" id="deck">
+
+  <!-- 1 cover -->
+  <section class="slide slide--ground" data-title="الغلاف" aria-label="الغلاف">
+    <canvas class="motif" id="motif" aria-hidden="true"></canvas>
+    <div class="wrap cover" style="position:relative">
+      <img class="logo" src="logo-white.png" alt="هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية">
+      <div style="display:grid;gap:18px">
+        <div class="eyebrow">عرض تعريفي</div>
+        <h1>نظام إدارة المستودعات ومراقبة المخزون</h1>
+        <p class="sub">الهدف من النظام، والمشكلات التي يعالجها، وطريقة عمله، والفئات المستفيدة منه، ودورة حياة الطلبات بأمثلة عملية.</p>
+      </div>
+      <div class="meta">
+        <span>إعداد <b>عبدالعزيز محمد القحطاني</b> — مدير النظام</span>
+        <span>هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية</span>
+        <span>جمادى الآخرة ١٤٤٨ هـ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 goal -->
+  <section class="slide" data-title="الهدف من النظام" aria-label="الهدف من النظام">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">الهدف</div>
+        <p class="statement">مخزون <em>دقيق</em> في كل مستودع، وطلبات تُصرف <em>بسرعة</em> وفق صلاحيات واضحة، وأثر <em>موثّق</em> لكل حركة.</p>
+      </div>
+      <div class="goals">
+        <div class="goal"><svg><use href="#i-list"/></svg><h3>رقمنة دورة المستودع كاملة</h3><p>من أمر الشراء والاستلام حتى الصرف والجرد والإتلاف، في نظام واحد بدل الورق والجداول المتفرقة.</p></div>
+        <div class="goal"><svg><use href="#i-eye"/></svg><h3>رصيد لحظي موثوق</h3><p>معرفة الكمية والقيمة ومكان كل صنف حتى مستوى الخانة والدفعة وتاريخ الانتهاء.</p></div>
+        <div class="goal"><svg><use href="#i-shield"/></svg><h3>حوكمة وضبط</h3><p>اعتمادات حسب مصفوفة الصلاحيات، وفصل المهام، وسجل تدقيق لا يقبل التعديل.</p></div>
+        <div class="goal"><svg><use href="#i-chart"/></svg><h3>قرار مبني على البيانات</h3><p>مؤشرات أداء وتقارير وتنبيهات تدعم التخطيط وإعادة الطلب والحد من الهدر والركود.</p></div>
+      </div>
+      <p class="note"><span class="tag">ضوابط الأمن السيبراني الأساسية (NCA ECC)</span><span class="tag">نظام حماية البيانات الشخصية (PDPL)</span><span class="tag tag--gold">رؤية المملكة ٢٠٣٠ — التحول الرقمي الحكومي</span></p>
+    </div>
+  </section>
+
+  <!-- 3 problems -->
+  <section class="slide" data-title="المشكلات التي يحلها" aria-label="المشكلات التي يحلها">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">أبرز المشكلات</div>
+        <h2 class="title">ما الذي يتغير مع النظام؟</h2>
+        <p class="lead">اختر مشكلة لترى الوضع الحالي، وكيف يعالجها النظام.</p>
+      </div>
+      <div class="split">
+        <div class="plist" id="plist" role="tablist" aria-label="المشكلات"></div>
+        <div class="ppanel" id="ppanel" role="tabpanel" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 about -->
+  <section class="slide" data-title="نبذة عن النظام" aria-label="نبذة عن النظام">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">نبذة عن النظام</div>
+        <h2 class="title">منصة واحدة لإدارة المستودعات الخمسة</h2>
+        <p class="lead">نظام ويب عربي وإنجليزي يعمل من المتصفح والجوال. يُسجَّل كل استلام وصرف ونقل وجرد كحركة في سجل موحد، فيبقى الرصيد والقيمة صحيحين في كل لحظة. عمّال المستودع يستخدمون الجوال لمسح الباركود أثناء التخزين والتجهيز والجرد.</p>
+      </div>
+      <div class="figures">
+        <div class="fig"><b>٥</b><span>مستودعات بهيكل موحد</span></div>
+        <div class="fig"><b>١٤</b><span>دوراً وظيفياً بصلاحيات محددة</span></div>
+        <div class="fig"><b>٢٠٠</b><span>صنف في ٨ تصنيفات (بيانات العرض)</span></div>
+        <div class="fig"><b>٦٧١</b><span>خانة تخزين مرمّزة بالباركود</span></div>
+      </div>
+      <div class="whs">
+        <div class="wh"><span class="code">SPR</span><h3>مستودع قطع الغيار</h3><p>قطع المولدات والتكييف والسباكة والمواد الكهربائية. الصرف بقاعدة FIFO.</p></div>
+        <div class="wh"><span class="code">CLN</span><h3>مستودع مستهلكات النظافة</h3><p>المنظفات والمعقمات والمناديل والأدوات. الصرف بالأقرب انتهاءً (FEFO).</p></div>
+        <div class="wh"><span class="code">HSP</span><h3>مستودع مستهلكات الضيافة</h3><p>القهوة والشاي والمياه وأدوات التقديم. الصرف بالأقرب انتهاءً (FEFO).</p></div>
+        <div class="wh"><span class="code">AST</span><h3>مستودع الأصول</h3><p>الأجهزة التقنية والأثاث ومعدات السلامة والميدان، بالرقم التسلسلي والعهد.</p></div>
+        <div class="wh"><span class="code">SCR</span><h3>مستودع الهالك</h3><p>المواد المستبعدة والتالفة بانتظار قرار لجنة الإتلاف.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 how it works -->
+  <section class="slide" data-title="طريقة العمل" aria-label="طريقة العمل">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">طريقة العمل</div>
+        <h2 class="title">رحلة الصنف داخل النظام</h2>
+        <p class="lead">سبع مراحل مترابطة. اختر مرحلة لعرض ما يحدث فيها، ومن ينفذها، وما المستند الناتج.</p>
+      </div>
+      <div class="flow" id="flow" role="tablist" aria-label="مراحل العمل"></div>
+      <div class="fdetail" id="fdetail" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 6 modules -->
+  <section class="slide" data-title="وحدات النظام" aria-label="وحدات النظام">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">وحدات النظام</div>
+        <h2 class="title">ماذا يغطي النظام؟</h2>
+      </div>
+      <div class="mods">
+        <div class="mod mod--key"><span class="ic"><svg><use href="#i-doc"/></svg></span><div><h3>طلبات المواد</h3><p>صرف، أمر عمل، عهدة، حجز، وطلب عاجل، مع الاعتماد والتتبع.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-tag"/></svg></span><div><h3>الأصناف والتصنيف</h3><p>بطاقة صنف موحدة وكشف التكرار قبل إنشاء صنف جديد.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-shelf"/></svg></span><div><h3>المستودعات والخانات</h3><p>مناطق وممرات ورفوف وخانات بطاقة استيعاب وباركود.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-truck"/></svg></span><div><h3>المشتريات والاستلام</h3><p>أوامر الشراء، لجنة الفحص، سند الاستلام، والمطابقة الثلاثية.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-swap"/></svg></span><div><h3>التحويلات</h3><p>نقل بين المستودعات مع حالة «في الطريق»، ونقل بين الخانات.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-return"/></svg></span><div><h3>الرجيع والحجر</h3><p>رجيع المواد وفحصها، والحجر، والإرجاع للمورد.</p></div></div>
+        <div class="mod mod--key"><span class="ic"><svg><use href="#i-list"/></svg></span><div><h3>الجرد</h3><p>سنوي ودوري ومفاجئ، جرد أعمى، واعتماد الفروقات.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-trash"/></svg></span><div><h3>الإتلاف والشطب</h3><p>محضر لجنة موقّع واعتماد متدرج حسب القيمة.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-badge"/></svg></span><div><h3>العهد وإخلاء الطرف</h3><p>عهدة شخصية بالرقم التسلسلي، وإخلاء طرف يتوقف عند وجود عهدة.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-chart"/></svg></span><div><h3>التخطيط وإعادة الطلب</h3><p>مخزون الأمان ونقطة إعادة الطلب وطلبات الشراء المقترحة.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-coin"/></svg></span><div><h3>التقييم والقيود</h3><p>متوسط التكلفة المرجح، القيود المحاسبية، ومخصص التقادم.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-bell"/></svg></span><div><h3>التقارير والتنبيهات</h3><p>مؤشرات الأداء، تقارير PDF وExcel مجدولة، وتنبيهات بالبريد.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-scan"/></svg></span><div><h3>الباركود والملصقات</h3><p>طباعة ملصقات الخانات والأصناف، والمسح من الجوال.</p></div></div>
+        <div class="mod"><span class="ic"><svg><use href="#i-link"/></svg></span><div><h3>التكامل</h3><p>واجهات برمجية بمفاتيح وصول لربط النظام المالي ومنصة اعتماد.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 audience -->
+  <section class="slide" data-title="الفئة المستهدفة" aria-label="الفئة المستهدفة">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">الفئة المستهدفة</div>
+        <h2 class="title">من يستخدم النظام؟</h2>
+        <p class="lead">كل مستخدم يرى ما يخصه فقط، حسب دوره والمستودعات المسندة إليه. اختر دوراً لعرض مهامه.</p>
+      </div>
+      <div class="groups" id="groups"></div>
+      <div class="rpanel" id="rpanel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 8 MR lifecycle -->
+  <section class="slide" data-title="دورة حياة طلب المواد" aria-label="دورة حياة طلب المواد">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">دورة حياة الطلبات</div>
+        <h2 class="title">طلب المواد من الإنشاء حتى الإغلاق</h2>
+      </div>
+      <div class="life">
+        <div class="track" id="track" role="tablist" aria-label="حالات الطلب"></div>
+        <div class="statebox">
+          <p id="stateText"></p>
+          <div class="ctrl">
+            <button class="btn" id="playLife" type="button"><svg><use href="#i-play"/></svg><span>تشغيل الدورة</span></button>
+          </div>
+        </div>
+        <div class="branches">
+          <div class="branch branch--warn"><b>معاد للتعديل</b><p>يعيده المعتمد مع سبب مكتوب، فيعدّله الطالب ويعيد إرساله وتبدأ الاعتمادات من جديد.</p></div>
+          <div class="branch branch--bad"><b>مرفوض</b><p>يرفضه المعتمد مع سبب إلزامي. يُغلق الطلب ويُبلَّغ الطالب.</p></div>
+          <div class="branch branch--warn"><b>تسليم جزئي</b><p>عند نقص الرصيد يُسلَّم المتاح ويبقى الباقي مفتوحاً حتى توفره.</p></div>
+          <div class="branch branch--warn"><b>تصعيد المهلة</b><p>إذا تجاوز المعتمد المهلة (SLA) يُصعَّد الطلب تلقائياً ويُرسل تنبيه.</p></div>
+        </div>
+        <div class="doa">
+          <div class="lvl"><b>المستوى ١: مدير الإدارة</b><span>كل الطلبات · المهلة ٢٤ ساعة</span></div>
+          <div class="lvl"><b>المستوى ٢: مدير المستودع</b><span>أكثر من ٥٬٠٠٠ ر.س أو صنف حرج · ٢٤ ساعة</span></div>
+          <div class="lvl"><b>المستوى ٣: المعتمد التنفيذي</b><span>أكثر من ٥٠٬٠٠٠ ر.س · ٤٨ ساعة</span></div>
+          <div class="lvl lvl--urg"><b>الطلب العاجل</b><span>مدير الإدارة أو مدير المستودع، أيهما أسبق · ٤ ساعات</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 examples -->
+  <section class="slide" data-title="أمثلة على الطلبات" aria-label="أمثلة على الطلبات">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">أمثلة تطبيقية</div>
+        <h2 class="title">ثلاثة طلبات، ثلاثة مسارات</h2>
+        <p class="lead">اختر المثال، ثم تقدّم خطوة بخطوة لترى من ينفذ كل خطوة وكيف تتغير حالة الطلب.</p>
+      </div>
+      <div class="tabs" id="exTabs" role="tablist" aria-label="الأمثلة"></div>
+      <div class="scenario">
+        <div class="ticket" id="ticket"></div>
+        <div style="display:grid;gap:12px">
+          <div class="ctrl">
+            <button class="btn" id="exNext" type="button">الخطوة التالية</button>
+            <button class="btn btn--ghost" id="exPrev" type="button">الخطوة السابقة</button>
+            <span class="count" id="exCount"></span>
+          </div>
+          <div class="steps" id="exSteps"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 other cycles -->
+  <section class="slide" data-title="دورات المستندات الأخرى" aria-label="دورات المستندات الأخرى">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">دورات أخرى</div>
+        <h2 class="title">التحويل، الرجيع، الجرد، والإتلاف</h2>
+        <p class="lead">لكل مستند دورة اعتماد خاصة به، وكلها تمر بنفس محرك الاعتمادات وسجل التدقيق.</p>
+      </div>
+      <div class="tabs" id="cyTabs" role="tablist" aria-label="الدورات"></div>
+      <div class="cycle-card" id="cyCard" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 11 controls -->
+  <section class="slide" data-title="الضوابط والأمان" aria-label="الضوابط والأمان">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">الضوابط والأمان</div>
+        <h2 class="title">رقابة مدمجة في كل خطوة</h2>
+      </div>
+      <div class="sec">
+        <div class="secc"><h3><svg><use href="#i-users"/></svg>فصل المهام</h3>
+          <div class="sod">
+            <div><span>منشئ الطلب</span><span class="x">✕</span><span>اعتماده</span></div>
+            <div><span>المعتمد</span><span class="x">✕</span><span>الشحن أو الصرف</span></div>
+            <div><span>القائم بالجرد</span><span class="x">✕</span><span>اعتماد فروقاته أو ترحيلها</span></div>
+            <div><span>عضو لجنة الإتلاف</span><span class="x">✕</span><span>اعتماد المحضر</span></div>
+          </div>
+        </div>
+        <div class="secc"><h3><svg><use href="#i-check"/></svg>مصفوفة تفويض الصلاحيات</h3><p>مستويات الاعتماد تُحدَّد حسب نوع المستند وقيمته وحرجية الصنف، مع التفويض أثناء الإجازات والتصعيد عند تجاوز المهلة.</p></div>
+        <div class="secc"><h3><svg><use href="#i-doc"/></svg>سجل تدقيق مسلسل</h3><p>كل عملية تُسجَّل بمن نفذها ومتى، وكل سجل مرتبط بما قبله ببصمة رقمية، فأي تعديل لاحق يُكتشف فوراً.</p></div>
+        <div class="secc"><h3><svg><use href="#i-shelf"/></svg>صلاحيات حسب المستودع</h3><p>أمين مستودع النظافة لا يرى أرصدة مستودع الأصول ولا يتصرف فيها. كل مستخدم يعمل في نطاقه فقط.</p></div>
+        <div class="secc"><h3><svg><use href="#i-key"/></svg>الدخول الآمن</h3><p>الدخول الموحد عبر Azure AD، والتحقق الثنائي، وسياسة كلمات مرور، وقفل الحساب بعد المحاولات الفاشلة.</p></div>
+        <div class="secc"><h3><svg><use href="#i-shield"/></svg>حماية البيانات</h3><p>تشفير المرفقات والبيانات الشخصية، ونسخ احتياطي يومي مشفّر مع اختبار استعادة موثّق.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 KPIs -->
+  <section class="slide" data-title="المؤشرات والتقارير" aria-label="المؤشرات والتقارير">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">قياس الأداء</div>
+        <h2 class="title">مؤشرات بمستهدفات واضحة</h2>
+        <p class="lead">تُحسب المؤشرات آلياً من الحركات الفعلية، وتظهر في لوحة المعلومات مقارنةً بمستهدفها. المستهدفات أدناه هي الإعداد الافتراضي ويمكن تعديلها.</p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><small>دقة المخزون</small><b>≥ 98%</b><div class="gauge"><i style="width:98%"></i></div></div>
+        <div class="kpi"><small>نسبة تلبية الطلبات</small><b>≥ 95%</b><div class="gauge"><i style="width:95%"></i></div></div>
+        <div class="kpi"><small>الاعتمادات ضمن المهلة</small><b>≥ 90%</b><div class="gauge"><i style="width:90%"></i></div></div>
+        <div class="kpi"><small>زمن دورة الطلب</small><b>≤ 24 h</b><div class="gauge"><i style="width:50%"></i></div></div>
+        <div class="kpi"><small>من الاستلام إلى الرف</small><b>≤ 48 h</b><div class="gauge"><i style="width:60%"></i></div></div>
+        <div class="kpi"><small>المخزون الراكد</small><b>≤ 10%</b><div class="gauge"><i style="width:10%"></i></div></div>
+        <div class="kpi"><small>نفاد الأصناف الحرجة</small><b>0</b><div class="gauge"><i style="width:2%"></i></div></div>
+        <div class="kpi"><small>إشغال المساحة</small><b>75–85%</b><div class="gauge"><i style="width:80%"></i></div></div>
+      </div>
+      <div class="reports">
+        <span class="tag">تقرير الأرصدة والقيمة</span><span class="tag">حركة صنف</span><span class="tag">فروقات الجرد</span><span class="tag">الأصناف الراكدة</span>
+        <span class="tag">قرب انتهاء الصلاحية</span><span class="tag">العهد الشخصية</span><span class="tag">أداء الموردين</span><span class="tag">تحليل ABC</span>
+        <span class="tag tag--gold">تصدير PDF وExcel وجدولة بالبريد</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 next -->
+  <section class="slide slide--ground" data-title="الخطوات القادمة" aria-label="الخطوات القادمة">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">الخطوات القادمة</div>
+        <h2 class="title">من التجربة إلى التشغيل</h2>
+        <p class="lead">النظام جاهز للتجربة الآن على نسخة العرض، وكلمة المرور لجميع حسابات التجربة <span class="mono">Iarda@2026!</span></p>
+      </div>
+      <ol class="road">
+        <li class="now"><b>التجربة</b><p>تجربة الأدوار والطلبات على نسخة العرض.</p></li>
+        <li><b>الملاحظات</b><p>جمع ملاحظات المستخدمين وتعديل النظام.</p></li>
+        <li><b>التثبيت</b><p>على الخادم الداخلي للهيئة.</p></li>
+        <li><b>ترحيل البيانات</b><p>الأصناف والخانات والأرصدة الافتتاحية الفعلية.</p></li>
+        <li><b>التدريب</b><p>لكل دور حسب مهامه، مع أدلة مختصرة.</p></li>
+        <li><b>التشغيل</b><p>إطلاق تدريجي مستودعاً بعد مستودع.</p></li>
+      </ol>
+      <div class="end-links">
+        <a class="btn" href="https://claude.ai/artifact/MN4sHQ2fR8Qc1Y3SpL9AAn" target="_blank" rel="noopener">فتح نسخة العرض للتجربة</a>
+        <button class="btn btn--ghost" type="button" data-go="0">العودة للبداية</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="bar">
+  <button class="nav-btn" id="prev" type="button" aria-label="الشريحة السابقة"><svg><use href="#i-prev"/></svg></button>
+  <button class="counter" id="counter" type="button" aria-label="فهرس الشرائح"></button>
+  <button class="nav-btn" id="next" type="button" aria-label="الشريحة التالية"><svg><use href="#i-next"/></svg></button>
+  <span class="spacer"></span>
+  <span class="hint">الأسهم أو المسافة للتنقل · <span class="mono">G</span> للفهرس</span>
+</div>
+
+<div class="index" id="index" hidden role="dialog" aria-label="فهرس الشرائح">
+  <div class="wrap">
+    <button class="btn btn--ghost close" id="closeIndex" type="button">إغلاق الفهرس</button>
+    <ol id="indexList"></ol>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+  const icon = (id) => `<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
+
+  /* ---------------- deck navigation ---------------- */
+  const slides = [...document.querySelectorAll(".slide")];
+  let cur = 0;
+  const show = (i, fromHash) => {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => { s.classList.toggle("is-active", k === cur); s.classList.toggle("is-before", k > cur); s.setAttribute("aria-hidden", k === cur ? "false" : "true"); s.inert = k !== cur; });
+    $("#counter").innerHTML = `<b>${ar(cur + 1)}</b> / ${ar(slides.length)} · ${slides[cur].dataset.title}`;
+    $("#progress").style.width = `${((cur + 1) / slides.length) * 100}%`;
+    $("#prev").disabled = cur === 0; $("#next").disabled = cur === slides.length - 1;
+    if (!fromHash) { try { history.replaceState(null, "", `#s${cur + 1}`); } catch (e) {} }
+    slides[cur].scrollTop = 0;
+  };
+  const go = (d) => show(cur + d);
+  $("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
+  document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => show(+b.dataset.go));
+  const fromHash = () => { const m = /^#s(\d+)$/.exec(location.hash); show(m ? +m[1] - 1 : 0, true); };
+  window.addEventListener("hashchange", fromHash);
+
+  const idx = $("#index");
+  const openIndex = () => {
+    $("#indexList").innerHTML = slides.map((s, k) => `<li><button class="item" type="button" data-k="${k}" aria-current="${k === cur}"><span class="n">${ar(k + 1)}</span><span>${s.dataset.title}</span></button></li>`).join("");
+    idx.hidden = false; $(`#indexList [data-k="${cur}"]`).focus();
+  };
+  const closeIndex = () => { idx.hidden = true; $("#counter").focus(); };
+  $("#counter").onclick = openIndex; $("#closeIndex").onclick = closeIndex;
+  $("#indexList").onclick = (e) => { const b = e.target.closest("[data-k]"); if (b) { show(+b.dataset.k); closeIndex(); } };
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea")) return;
+    if (!idx.hidden) { if (e.key === "Escape") closeIndex(); return; }
+    if (e.key === "ArrowLeft" || e.key === "PageDown" || (e.key === " " && !e.target.closest("button"))) { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowRight" || e.key === "PageUp") { e.preventDefault(); go(-1); }
+    else if (e.key === "Home") show(0); else if (e.key === "End") show(slides.length - 1);
+    else if (e.key === "g" || e.key === "G" || e.key === "ل") openIndex();
+  });
+  let tx = null, ty = null;
+  document.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    if (tx == null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && !e.target.closest(".track")) go(dx > 0 ? 1 : -1);
+  }, { passive: true });
+
+  /* ---------------- tab helper ---------------- */
+  const tablist = (host, items, render, cls, label) => {
+    host.innerHTML = items.map((it, k) => `<button type="button" role="tab" class="${cls}" data-k="${k}" aria-selected="false">${label(it, k)}</button>`).join("");
+    const pick = (k) => { host.querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.k === k))); render(items[k], k); };
+    host.onclick = (e) => { const b = e.target.closest("[role=tab]"); if (b) pick(+b.dataset.k); };
+    pick(0); return pick;
+  };
+
+  /* ---------------- problems ---------------- */
+  const problems = [
+    ["سجلات ورقية وجداول متفرقة", "كل مستودع يسجل حركاته في دفتر أو ملف Excel مختلف، ويصعب جمع صورة واحدة عن المخزون.", "سجل حركات موحد: كل استلام وصرف ونقل وجرد يُرحَّل كحركة، والرصيد يتحدث لحظياً في جميع المستودعات.", ["سجل الحركات", "لوحة المعلومات"]],
+    ["لا نعرف الرصيد الفعلي ولا مكانه", "الصنف موجود في النظام الورقي لكن لا أحد يعرف على أي رف، أو الكمية الفعلية تختلف عن المسجلة.", "كل خانة لها رمز وباركود، والرصيد محفوظ لكل خانة ودفعة وتاريخ انتهاء. المسح بالجوال يمنع الخطأ في الصنف والموقع.", ["خانات مرمّزة", "المسح بالجوال"]],
+    ["طول دورة الطلب وضياع المتابعة", "الطلب ينتقل ورقياً بين المكاتب، ولا يعرف الطالب أين وصل طلبه أو من يؤخره.", "دورة إلكترونية واضحة الحالات، بمهلة لكل اعتماد، وتصعيد تلقائي، وإشعارات للطالب في كل خطوة.", ["مهلة SLA", "إشعارات", "تصعيد"]],
+    ["اعتمادات غير موثقة وتداخل صلاحيات", "الشخص نفسه قد يطلب ويعتمد ويصرف، ولا يوجد أثر لمن وافق ومتى.", "مصفوفة تفويض حسب القيمة وحرجية الصنف، وفصل للمهام يمنع اعتماد الشخص لطلبه أو صرفه، مع سجل تدقيق غير قابل للتعديل.", ["مصفوفة التفويض", "فصل المهام", "سجل التدقيق"]],
+    ["فروقات جرد بلا تفسير", "يُكتشف العجز أو الزيادة عند الجرد السنوي فقط، ويُعدَّل الرصيد دون اعتماد واضح.", "جرد دوري ومفاجئ، والقائم بالعد لا يرى الرصيد الدفتري، والفرق خارج التسامح يُعاد عدّه بشخص آخر، ولا يُرحَّل إلا بعد اعتماده.", ["جرد أعمى", "إعادة العد", "اعتماد الفروقات"]],
+    ["مواد منتهية أو راكدة، ونفاد مفاجئ", "تنتهي صلاحية مستهلكات الضيافة والنظافة على الرف، بينما تنفد أصناف أخرى دون إنذار.", "الصرف بالأقرب انتهاءً (FEFO)، وتنبيهات قرب الانتهاء والركود، ونقطة إعادة طلب تقترح طلب الشراء قبل النفاد.", ["FEFO", "نقطة إعادة الطلب", "تنبيهات"]],
+    ["عُهد بلا متابعة", "يخرج الموظف أو ينتقل وما زالت لديه أجهزة أو معدات غير مسجلة.", "عهدة مسجلة بالرقم التسلسلي لكل موظف، وإخلاء الطرف يتوقف تلقائياً إذا كانت لديه عهدة لم تُرجَع.", ["العهد", "إخلاء الطرف"]],
+  ];
+  tablist($("#plist"), problems, ([t, before, after, tags]) => {
+    $("#ppanel").innerHTML = `<h3 style="font-size:20px;color:var(--ink)">${t}</h3>
+      <div class="ba ba--before"><small>الوضع الحالي</small><p>${before}</p></div>
+      <div class="ba ba--after"><small>مع النظام</small><p>${after}</p></div>
+      <div class="how">${tags.map((x) => `<span class="tag">${x}</span>`).join("")}</div>`;
+  }, "pbtn", (p, k) => `<span class="k">${ar(k + 1)}</span><span>${p[0]}</span>`);
+
+  /* ---------------- how it works ---------------- */
+  const flow = [
+    { t: "البيانات الرئيسية", i: "tag", d: ["تعريف الأصناف بوحدات القياس والتصنيف والتتبع (دفعة، رقم تسلسلي، انتهاء).", "كشف الأصناف المكررة قبل اعتماد صنف جديد.", "تعريف المستودعات والمناطق والخانات وطباعة ملصقاتها.", "تسجيل الموردين ومراكز التكلفة."], who: ["مسؤول البيانات الرئيسية", "مدير المستودع"], out: "بطاقة صنف معتمدة" },
+    { t: "الاستلام والفحص", i: "truck", d: ["استلام الشحنة مقابل أمر الشراء.", "لجنة الفحص والاستلام تقرر القبول أو الرفض لكل بند.", "إصدار سند الاستلام وترحيل الكمية إلى منطقة الاستلام.", "المطابقة الثلاثية: أمر الشراء، سند الاستلام، الفاتورة."], who: ["أمين المستودع", "لجنة الفحص والاستلام", "المشتريات"], out: "سند استلام (GRN)" },
+    { t: "التخزين", i: "shelf", d: ["النظام يقترح خانة مناسبة حسب الاستيعاب وتوافق الصنف.", "عامل المستودع يمسح الخانة والصنف بالجوال لتأكيد التخزين.", "الرصيد ينتقل من الاستلام إلى الخانة ويصبح متاحاً للصرف."], who: ["عامل المستودع"], out: "مهمة تخزين منفذة" },
+    { t: "الطلب والاعتماد", i: "doc", d: ["الموظف ينشئ طلب صرف أو عهدة أو أمر عمل أو طلباً عاجلاً.", "النظام يحسب القيمة ويحدد مستويات الاعتماد آلياً.", "كل معتمد يرى طلباته في صندوق الاعتمادات مع مهلة محددة."], who: ["طالب المواد", "مدير الإدارة", "مدير المستودع"], out: "طلب مواد معتمد" },
+    { t: "التجهيز والتسليم", i: "scan", d: ["حجز المخزون بقاعدة FEFO أو FIFO.", "قائمة تجهيز لعامل المستودع وتأكيد كل بند بالمسح.", "التسليم بتوقيع المستلم على الشاشة.", "حركة صرف على مركز التكلفة وقيد محاسبي تلقائي."], who: ["أمين المستودع", "عامل المستودع"], out: "سند صرف موقّع" },
+    { t: "الرقابة على المخزون", i: "list", d: ["التحويل بين المستودعات مع حالة «في الطريق».", "الرجيع وفحصه: سليم أو حجر أو تالف.", "الجرد الدوري والمفاجئ واعتماد الفروقات.", "الإتلاف والشطب بمحضر لجنة."], who: ["مدير المستودع", "لجنة الجرد والإتلاف", "المالية"], out: "محاضر الجرد والإتلاف" },
+    { t: "التخطيط والتقارير", i: "chart", d: ["حساب مخزون الأمان ونقطة إعادة الطلب.", "طلبات شراء مقترحة عند الوصول لنقطة إعادة الطلب.", "تقييم المخزون والقيود المحاسبية الشهرية.", "مؤشرات الأداء والتقارير المجدولة."], who: ["مخطط المخزون", "المالية", "الإدارة العليا"], out: "طلب شراء مقترح، تقارير" },
+  ];
+  tablist($("#flow"), flow, (s, k) => {
+    $("#fdetail").innerHTML = `<div style="display:grid;gap:10px"><span class="tag tag--gold" style="justify-self:start">المرحلة ${ar(k + 1)} من ${ar(flow.length)}</span><h3>${s.t}</h3><ul>${s.d.map((x) => `<li>${x}</li>`).join("")}</ul></div>
+      <div class="side"><div class="kv"><small>من ينفذها</small><div class="chips">${s.who.map((x) => `<span class="tag">${x}</span>`).join("")}</div></div>
+      <div class="kv"><small>المخرج</small><b>${s.out}</b></div></div>`;
+  }, "fstep", (s, k) => `<span class="num">${ar(k + 1)}</span>${icon(s.i)}<b>${s.t}</b>`);
+
+  /* ---------------- audience ---------------- */
+  const groups = [
+    ["تشغيل المستودعات", [
+      ["مدير المستودع", "WM", ["يعتمد الطلبات فوق ٥٬٠٠٠ ر.س والأصناف الحرجة", "يعتمد التحويلات وفروقات الجرد", "يتابع مؤشرات مستودعه والحجر"]],
+      ["أمين المستودع", "SK", ["يستلم الشحنات ويصدر سندات الاستلام", "يحجز المخزون ويصدر قوائم التجهيز", "يسلّم الطلبات ويرحّل الفروقات المعتمدة"]],
+      ["عامل المستودع", "WW", ["ينفذ مهام التخزين والتجهيز بالجوال", "يمسح الخانة والصنف لتأكيد كل حركة", "يشارك في العد أثناء الجرد"]],
+      ["مخطط المخزون", "PLN", ["يضبط الحد الأدنى والأقصى ونقطة إعادة الطلب", "يراجع طلبات الشراء المقترحة", "يتابع الأصناف الراكدة"]],
+      ["مسؤول البيانات الرئيسية", "MDO", ["ينشئ الأصناف ويعتمدها", "يمنع تكرار الأصناف", "يحدّث التصنيفات ووحدات القياس"]],
+    ]],
+    ["المستفيدون والمعتمدون", [
+      ["طالب المواد", "REQ", ["ينشئ طلبات الصرف والعهد", "يتابع حالة طلبه لحظياً", "يستلم بتوقيعه ويعيد الرجيع"]],
+      ["مدير الإدارة", "DM", ["يعتمد طلبات إدارته (المستوى الأول)", "يعتمد الطلبات العاجلة خلال ٤ ساعات", "يفوّض الاعتماد أثناء غيابه"]],
+    ]],
+    ["اللجان", [
+      ["لجنة الفحص والاستلام", "IRC", ["تفحص الشحنات الواردة وتقرر القبول أو الرفض", "تسجل الملاحظات لكل بند"]],
+      ["لجنة الجرد والإتلاف", "CDC", ["تنفذ الجرد وإعادة العد", "تعد محضر الإتلاف وترفعه للاعتماد", "لا تعتمد ما أوصت به"]],
+    ]],
+    ["الرقابة والدعم", [
+      ["المالية", "FIN", ["تعتمد الفروقات والإتلاف فوق حدود معينة", "تراجع التقييم والقيود ومخصص التقادم", "لا ترحّل حركات المخزون"]],
+      ["المشتريات", "PRC", ["تصدر أوامر الشراء", "تحوّل طلبات الشراء المقترحة إلى أوامر", "تتابع أداء الموردين"]],
+      ["المراجع الداخلي", "AUD", ["اطلاع كامل للقراءة فقط", "يتحقق من سلامة سجل التدقيق", "يستخرج تقارير المراجعة"]],
+      ["مدير النظام", "ADM", ["يدير المستخدمين والأدوار ونطاقات المستودعات", "يضبط الإعدادات والتكامل", "لا ينفذ حركات مخزون"]],
+      ["المورد", "SUP", ["يطّلع على أوامر الشراء الخاصة به", "يرسل إشعارات الشحن", "يتابع حالة الاستلام"]],
+    ]],
+  ];
+  const flat = groups.flatMap(([, rs]) => rs);
+  $("#groups").innerHTML = groups.map(([g, rs]) => `<div class="group"><small>${g}</small><div class="roles" role="tablist" aria-label="${g}">${rs.map((r) => `<button type="button" role="tab" class="role" data-r="${flat.indexOf(r)}" aria-selected="false">${r[0]}</button>`).join("")}</div></div>`).join("");
+  const pickRole = (k) => {
+    document.querySelectorAll("#groups .role").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.r === k)));
+    const [n, code, tasks] = flat[k];
+    $("#rpanel").innerHTML = `<h3>${n} <span class="mono">${code}</span></h3><ul>${tasks.map((t) => `<li>${t}</li>`).join("")}</ul>`;
+  };
+  $("#groups").onclick = (e) => { const b = e.target.closest("[data-r]"); if (b) pickRole(+b.dataset.r); };
+  pickRole(1);
+
+  /* ---------------- MR lifecycle ---------------- */
+  const states = [
+    ["مسودة", "الطالب", "ينشئ الطالب الطلب ويضيف الأصناف والكميات والغرض. يمكنه التعديل أو الحذف قبل الإرسال."],
+    ["بانتظار الاعتماد", "المعتمدون", "يحدد النظام مستويات الاعتماد حسب القيمة وحرجية الصنف، ويرسل الطلب لكل مستوى بالترتيب مع مهلة محددة."],
+    ["معتمد", "النظام", "اكتملت الاعتمادات. يُبلَّغ أمين المستودع، ويظهر الطلب في قائمة العمل."],
+    ["محجوز", "أمين المستودع", "يُحجز المخزون من الدفعات الأقرب انتهاءً (FEFO) أو الأقدم (FIFO)، فلا تُصرف لطلب آخر."],
+    ["قيد التجهيز", "عامل المستودع", "قائمة تجهيز على الجوال: يمسح الخانة والصنف ويؤكد الكمية لكل بند."],
+    ["جاهز للتسليم", "أمين المستودع", "المواد مجهزة في منطقة التسليم بانتظار حضور المستلم."],
+    ["مُسلّم", "المستلم", "يوقّع المستلم على الشاشة. تُرحَّل حركة الصرف على مركز التكلفة ويصدر سند الصرف."],
+    ["مغلق", "النظام", "اكتملت الدورة، ويبقى الطلب بكل خطواته وتوقيعاته في السجل للمراجعة."],
+  ];
+  const track = $("#track");
+  track.innerHTML = states.map(([n, w], k) => `<button type="button" role="tab" class="state" data-k="${k}" aria-selected="false"><span class="dot">${ar(k + 1)}</span><span>${n}</span><small>${w}</small></button>`).join("");
+  let life = 0, timer = null;
+  const setLife = (k) => {
+    life = k;
+    track.querySelectorAll(".state").forEach((b, i) => { b.classList.toggle("done", i < k); b.classList.toggle("cur", i === k); b.setAttribute("aria-selected", String(i === k)); });
+    $("#stateText").innerHTML = `<b>${states[k][0]}</b> — ${states[k][2]}`;
+    const el = track.children[k]; if (el && track.scrollWidth > track.clientWidth) track.scrollTo({ left: el.offsetLeft - track.clientWidth / 2, behavior: "smooth" });
+  };
+  track.onclick = (e) => { const b = e.target.closest(".state"); if (b) { stopLife(); setLife(+b.dataset.k); } };
+  const stopLife = () => { clearInterval(timer); timer = null; $("#playLife span").textContent = "تشغيل الدورة"; };
+  $("#playLife").onclick = () => {
+    if (timer) return stopLife();
+    setLife(0); $("#playLife span").textContent = "إيقاف";
+    timer = setInterval(() => { if (life >= states.length - 1) return stopLife(); setLife(life + 1); }, 1600);
+  };
+  setLife(1);
+
+  /* ---------------- examples ---------------- */
+  const examples = [
+    { tab: "مستهلكات نظافة", sub: "طلب عادي · مستوى اعتماد واحد", no: "MR-1448-000142", wh: "CLN · مستهلكات النظافة", type: "صرف", who: "موظف في إدارة الخدمات المساندة", purpose: "تشغيل المبنى الإداري لشهر رجب", value: "1,850 ر.س",
+      lines: [["مناديل حمام لفّة — كرتون", "20 كرتون"], ["معقم أسطح — جالون ٤ لتر", "10 جالون"], ["أكياس نفايات كبيرة — كرتون", "6 كرتون"]],
+      steps: [
+        ["الطالب", "إنشاء الطلب وإرساله", "يتحقق النظام من الرصيد المتاح ويحسب القيمة ١٬٨٥٠ ر.س. القيمة أقل من ٥٬٠٠٠ والأصناف غير حرجة، فيكفي اعتماد مدير الإدارة.", "بانتظار الاعتماد", ""],
+        ["مدير الإدارة", "الاعتماد من صندوق الاعتمادات", "اعتمد خلال ٣ ساعات من أصل مهلة ٢٤ ساعة. وصل إشعار لأمين مستودع النظافة.", "معتمد", "ok"],
+        ["أمين مستودع النظافة", "حجز المخزون وإصدار قائمة التجهيز", "حجز النظام المعقم من الدفعة الأقرب انتهاءً (FEFO) وأسند قائمة التجهيز لعامل المستودع.", "قيد التجهيز", ""],
+        ["عامل المستودع", "التجهيز بالمسح من الجوال", "مسح كل خانة وصنف. عند مسح صنف خاطئ يرفض النظام التأكيد ويطلب الصنف الصحيح.", "جاهز للتسليم", ""],
+        ["المستلم", "التسليم بالتوقيع", "وقّع المستلم على الشاشة. رُحّلت حركة الصرف على مركز تكلفة الإدارة وصدر سند الصرف PDF.", "مُسلّم", "ok"],
+      ] },
+    { tab: "قطعة غيار مولد", sub: "صنف حرج · إعادة للتعديل", no: "MR-1448-000157", wh: "SPR · قطع الغيار", type: "أمر عمل صيانة", who: "فني الصيانة", purpose: "صيانة مولد موقع الحراسة الشمالي", value: "7,400 ر.س",
+      lines: [["فلتر ديزل مولد", "4 حبة"], ["سير مروحة مولد", "2 حبة"], ["منظم جهد مولد", "1 حبة"]],
+      steps: [
+        ["الطالب", "إنشاء طلب أمر عمل وإرساله", "القيمة ٧٬٤٠٠ ر.س والأصناف من فئة حرجة، فيحدد النظام مستويين: مدير الإدارة ثم مدير المستودع.", "بانتظار الاعتماد", ""],
+        ["مدير الإدارة", "اعتماد المستوى الأول", "اعتمد مدير الإدارة، وانتقل الطلب تلقائياً لمدير المستودع.", "بانتظار الاعتماد (المستوى ٢)", ""],
+        ["مدير المستودع", "إعادة للتعديل", "أعاده مع سبب: «أرفق رقم أمر العمل ورقم المولد التسلسلي». السبب إلزامي ويظهر للطالب.", "معاد للتعديل", "bad", true],
+        ["الطالب", "التعديل وإعادة الإرسال", "أضاف رقم أمر العمل والرقم التسلسلي. تبدأ دورة الاعتماد من جديد بنسخة محدّثة من الطلب.", "بانتظار الاعتماد", ""],
+        ["مدير الإدارة ثم مدير المستودع", "الاعتماد", "اعتمد المستويان. لا يستطيع مدير المستودع صرف ما اعتمده، فينتقل التنفيذ لأمين المستودع.", "معتمد", "ok"],
+        ["أمين المستودع وعامل المستودع", "الحجز والتجهيز والتسليم", "حجز بقاعدة FIFO من مستودع قطع الغيار، ثم تجهيز بالمسح وتسليم موقّع.", "مُسلّم", "ok"],
+      ] },
+    { tab: "طلب عاجل للضيافة", sub: "مهلة ٤ ساعات · أول معتمد", no: "MR-1448-000163", wh: "HSP · مستهلكات الضيافة", type: "عاجل", who: "منسق المراسم", purpose: "اجتماع مجلس الإدارة اليوم الساعة ١٢ ظهراً", value: "940 ر.س",
+      lines: [["مياه شرب ٣٣٠ مل — كرتون", "8 كرتون"], ["قهوة عربية مطحونة — كيس ١ كجم", "3 كيس"], ["أكواب ورقية للقهوة — كرتون", "2 كرتون"]],
+      steps: [
+        ["الطالب", "إنشاء طلب عاجل", "الطلب العاجل يُرسل لمدير الإدارة ومدير المستودع معاً، والمهلة ٤ ساعات بدلاً من ٢٤.", "بانتظار الاعتماد", ""],
+        ["مدير المستودع", "الاعتماد أولاً", "اعتمد مدير المستودع قبل مدير الإدارة، فاكتمل الاعتماد وأُلغيت المهمة الموازية تلقائياً.", "معتمد", "ok"],
+        ["النظام", "تنبيه المهلة", "لو لم يعتمد أحد خلال ٤ ساعات لصُعّد الطلب وأُرسل تنبيه بالبريد. هنا لم يلزم ذلك.", "معتمد", ""],
+        ["أمين مستودع الضيافة وعامل المستودع", "تجهيز سريع وتسليم", "يظهر الطلب أعلى قائمة العمل بعلامة «عاجل». تجهيز بقاعدة FEFO وتسليم موقّع قبل الاجتماع.", "مُسلّم", "ok"],
+      ] },
+  ];
+  let ex = 0, exStep = 0;
+  const renderEx = () => {
+    const e = examples[ex], s = e.steps[exStep];
+    $("#ticket").innerHTML = `<div class="top"><span class="no">${e.no} <small class="tag" style="font-family:var(--f-body)">مثال توضيحي</small></span><span class="pill ${s[4]}">${s[3]}</span></div>
+      <dl><dt>المستودع</dt><dd>${e.wh}</dd><dt>نوع الطلب</dt><dd>${e.type}</dd><dt>الطالب</dt><dd>${e.who}</dd><dt>الغرض</dt><dd>${e.purpose}</dd><dt>القيمة التقديرية</dt><dd>${e.value}</dd></dl>
+      <div class="lines">${e.lines.map(([n, q]) => `<div><span>${n}</span><b>${q}</b></div>`).join("")}</div>`;
+    $("#exSteps").innerHTML = e.steps.map(([actor, t, d, , , br], k) => `<button type="button" class="step ${k < exStep ? "seen" : ""} ${k === exStep ? "cur" : ""} ${br ? "branch-step" : ""}" data-k="${k}" aria-current="${k === exStep}"><span class="who">${ar(k + 1)}</span><span><span class="actor">${actor}</span><b>${t}</b>${k <= exStep ? `<p>${d}</p>` : ""}</span></button>`).join("");
+    $("#exPrev").disabled = exStep === 0; $("#exNext").disabled = exStep === e.steps.length - 1;
+    $("#exCount").textContent = `الخطوة ${ar(exStep + 1)} من ${ar(e.steps.length)}`;
+  };
+  tablist($("#exTabs"), examples, (_, k) => { ex = k; exStep = 0; renderEx(); }, "tab", (e) => `${e.tab}<small>${e.sub}</small>`);
+  $("#exSteps").onclick = (e) => { const b = e.target.closest(".step"); if (b) { exStep = +b.dataset.k; renderEx(); } };
+  $("#exPrev").onclick = () => { exStep = Math.max(0, exStep - 1); renderEx(); };
+  $("#exNext").onclick = () => { exStep = Math.min(examples[ex].steps.length - 1, exStep + 1); renderEx(); };
+
+  /* ---------------- other cycles ---------------- */
+  const cycles = [
+    { t: "التحويل بين المستودعات", sub: "مثال: نقل أصول مستبعدة إلى الهالك",
+      flow: [["مسودة"], ["اعتماد مدير المستودع المصدر"], ["شحن — في الطريق", "key"], ["استلام في الوجهة"], ["مغلق"]],
+      alt: [["فرق استلام", "bad"], ["اعتماد الفروقات", "key"], ["ترحيل ثم إغلاق"]],
+      ex: "طُلب نقل خوذتَي سلامة من مستودع الأصول إلى مستودع الهالك. اعتمد مدير مستودع الأصول، وشُحنت الكمية فظهرت «في الطريق». استُلمت خوذة واحدة فقط، فأنشأ النظام فرق استلام بقيمة الخوذة الناقصة، يُعتمد من شاشة التحويل نفسها قبل الإغلاق.",
+      rules: [["في الطريق", "الكمية المشحونة محسوبة في المخزون لكنها غير قابلة للصرف حتى تُستلم."], ["فصل المهام", "المعتمد لا يشحن، والشاحن لا يستلم."], ["الفرق", "لا يُغلق التحويل حتى يُعتمد الفرق ويُرحَّل."]] },
+    { t: "الرجيع", sub: "إعادة مواد للمستودع",
+      flow: [["طلب رجيع"], ["فحص أمين المستودع", "key"], ["سليم ← خانة الرجيع ثم التخزين"]],
+      alt: [["حجر ← قرار مدير المستودع"], ["تالف ← الإتلاف أو الإرجاع للمورد", "bad"]],
+      ex: "أعاد موظف ٣ كراتين أكواب ضيافة لم تُستخدم بعد انتهاء فعالية. فحصها أمين المستودع: كرتونان سليمان عادا للمخزون المتاح بتكلفة الصرف الأصلية، وكرتون تالف حُوّل لمنطقة التالف.",
+      rules: [["الحد الأقصى", "لا يتجاوز الرجيع ما صُرف فعلاً على الطلب الأصلي."], ["التقييم", "يعود الرجيع بتكلفة الصرف الأصلية."], ["الحجر", "مدير المستودع فقط يفرج عن الحجر أو يحوّله للتالف."]] },
+    { t: "الجرد", sub: "دوري، مفاجئ، وسنوي",
+      flow: [["خطة جرد"], ["إطلاق"], ["عد أعمى بالجوال", "key"], ["إعادة عد بشخص آخر"], ["مراجعة الفروقات"], ["اعتماد الفروقات", "key"], ["ترحيل وإغلاق"]],
+      alt: [["لا فروقات ← إغلاق مباشر"]],
+      ex: "جرد دوري لمستودع النظافة لأصناف الفئة A. عدّ العامل خانة المعقمات دون أن يرى الرصيد الدفتري، فظهر عجز ٣ جالونات خارج نسبة التسامح. أعاد عضو لجنة الجرد العد وأكد العجز، فاعتمد مدير مستودع آخر الفرق، ورحّله أمين مستودع لم يشارك في العد.",
+      rules: [["الجرد الأعمى", "القائم بالعد لا يرى الرصيد الدفتري ولا عدّ زميله."], ["التسامح", "الفئة A صفر٪، والفئتان B وC ٢٪. ما يتجاوزه يُعاد عدّه."], ["الاعتماد", "المالية تعتمد الفروقات فوق ١٠٬٠٠٠ ر.س."]] },
+    { t: "الإتلاف والشطب", sub: "بمحضر لجنة",
+      flow: [["محضر لجنة الجرد والإتلاف"], ["رفع المحضر الموقّع", "key"], ["مدير المستودع"], ["المالية"], ["التنفيذي فوق ٢٥٬٠٠٠ ر.س"], ["ترحيل الإتلاف"]],
+      alt: [["رفض أو إعادة بسبب", "bad"]],
+      ex: "أعدّت اللجنة محضراً بإتلاف مستهلكات ضيافة منتهية الصلاحية بقيمة ٢٬٣٠٠ ر.س، ورفعت المحضر الموقّع PDF. اعتمد مدير المستودع ثم المالية، ونفّذ الترحيل أمين مستودع من خارج اللجنة وسلسلة الاعتماد.",
+      rules: [["المحضر", "لا يُرفع للاعتماد دون محضر موقّع من عضوين على الأقل."], ["فصل المهام", "أعضاء اللجنة يوصون فقط ولا يعتمدون."], ["الأثر المالي", "تُسجَّل قيمة الإتلاف كمصروف في القيد الشهري."]] },
+  ];
+  const chain = (arr) => arr.map(([c, k], i) => `${i ? '<span class="arrow" aria-hidden="true">←</span>' : ""}<span class="c ${k || ""}">${c}</span>`).join("");
+  tablist($("#cyTabs"), cycles, (c) => {
+    $("#cyCard").innerHTML = `<h3>${c.t}</h3>
+      <div class="mini">${chain(c.flow)}</div>
+      <div class="mini"><span class="tag tag--gold">مسار بديل</span>${chain(c.alt)}</div>
+      <div class="ba ba--after"><small>مثال</small><p>${c.ex}</p></div>
+      <div class="rules">${c.rules.map(([b, t]) => `<div class="rule"><b>${b}</b>${t}</div>`).join("")}</div>`;
+  }, "tab", (c) => `${c.t}<small>${c.sub}</small>`);
+
+  /* ---------------- cover motif: Sadu-like diamond band, drawn once ---------------- */
+  const cv = $("#motif");
+  const draw = () => {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = r.width * dpr; cv.height = r.height * dpr; const g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.strokeStyle = "#e5dbc8"; g.lineWidth = 1.2;
+    const s = 70;
+    for (let y = -s; y < r.height + s; y += s) for (let x = -s; x < r.width + s; x += s) {
+      const off = (Math.round(y / s) % 2) * s / 2;
+      g.beginPath(); g.moveTo(x + off, y - s / 2); g.lineTo(x + off + s / 2, y); g.lineTo(x + off, y + s / 2); g.lineTo(x + off - s / 2, y); g.closePath(); g.stroke();
+    }
+  };
+  draw(); window.addEventListener("resize", draw);
+
+  fromHash();
+})();
+</script>
