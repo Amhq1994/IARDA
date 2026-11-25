@@ -22,7 +22,12 @@ const NAV: NavGroup[] = [
     { to: "/inbound/pos", icon: "sheet", key: "ops.purchaseOrders", perms: ["po.read"] },
     { to: "/stock", icon: "chart", key: "ops.stock", perms: ["warehouse.read"] },
     { to: "/m", icon: "slides", key: "ops.mobile", perms: ["mobile.tasks"] },
-    { to: "#counting", icon: "check", key: "nav.counting", perms: ["count.plan", "count.execute", "adjustment.approve"], soon: true },
+    { to: "/approvals", icon: "check", key: "inv.approvals", perms: ["request.approve", "transfer.approve", "adjustment.approve", "disposal.approve", "return.vendor.approve", "delegation.own"] },
+    { to: "/transfers", icon: "slides", key: "inv.transfers", perms: ["transfer.request", "transfer.approve", "issue.execute", "receipt.execute", "audit.read"] },
+    { to: "/returns", icon: "download", key: "inv.returns", perms: ["return.warehouse", "return.vendor", "return.vendor.approve", "issue.execute", "audit.read"] },
+    { to: "/counts", icon: "table", key: "nav.counting", perms: ["count.plan", "count.execute", "count.review", "audit.read"] },
+    { to: "/adjustments", icon: "sheet", key: "inv.adjustments", perms: ["adjustment.request", "adjustment.approve", "count.review", "valuation.manage", "audit.read"] },
+    { to: "/disposals", icon: "alert", key: "inv.disposals", perms: ["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"] },
     { to: "#planning", icon: "chart", key: "nav.planning", perms: ["planning.manage", "valuation.manage"], soon: true },
   ] },
   { key: "nav.admin", items: [

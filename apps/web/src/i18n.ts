@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { opsAr, opsEn } from "./i18n-ops";
+import { invAr, invEn, invEventsAr, invEventsEn } from "./i18n-inv";
 
 const ar = {
   app: { name: "نظام إدارة المستودعات ومراقبة المخزون", short: "إدارة المستودعات", org: "هيئة تطوير محمية الإمام عبدالعزيز بن محمد الملكية",
@@ -142,7 +143,8 @@ const saved = (() => { try { return localStorage.getItem("wms.lang"); } catch { 
 const initial = saved === "en" ? "en" : "ar";
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, ...opsAr, events: EVENTS_AR } }, en: { translation: { ...en, ...opsEn, events: EVENTS_EN } } },
+  resources: { ar: { translation: { ...ar, ...opsAr, ...invAr, events: { ...invEventsAr, ...EVENTS_AR } } },
+    en: { translation: { ...en, ...opsEn, ...invEn, events: { ...invEventsEn, ...EVENTS_EN } } } },
   lng: initial,
   fallbackLng: "ar",
   interpolation: { escapeValue: false },

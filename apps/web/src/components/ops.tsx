@@ -128,7 +128,7 @@ export function Timeline({ events }: { events: any[] }) {
           <span className="timeline__dot" />
           <div>
             <b>{t(`events.${e.event}`, { defaultValue: e.event.replace(/_/g, " ") })}</b>
-            {e.to_status && e.to_status !== e.from_status && <> → {t(`mrStatus.${e.to_status}`, { defaultValue: t(`rcvStatus.${e.to_status}`, { defaultValue: e.to_status }) })}</>}
+            {e.to_status && e.to_status !== e.from_status && <> → {t(`mrStatus.${e.to_status}`, { defaultValue: t(`rcvStatus.${e.to_status}`, { defaultValue: t(`docStatus.${e.to_status}`, { defaultValue: e.to_status }) }) })}</>}
             <div className="muted" style={{ fontSize: 12.5 }}>{(lang === "ar" ? e.actor_ar : e.actor_en) ?? (lang === "ar" ? "النظام" : "System")} · {fmtDate(e.at, lang, true)}</div>
             {e.comment && <div style={{ fontSize: 13.5 }}>{e.comment}</div>}
           </div>

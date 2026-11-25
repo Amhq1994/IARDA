@@ -4,6 +4,7 @@ This repository holds:
 - **WMS:** the Warehouse Management & Inventory Control System, in `apps/`, `packages/` and `docs/wms/`.
   - Phase 1 is delivered; see [`docs/wms/02-phase1.md`](docs/wms/02-phase1.md) for setup, demo accounts and a walkthrough.
   - Phase 2 (inbound, put-away, material requests, approvals, picking, delivery) is delivered; see [`docs/wms/03-phase2.md`](docs/wms/03-phase2.md).
+  - Phase 3 (transfers with in-transit stock, returns, quarantine and RTV, stock counting, adjustments, disposal) is delivered; see [`docs/wms/04-phase3.md`](docs/wms/04-phase3.md).
   - The approved design is in [`docs/wms/01-design.md`](docs/wms/01-design.md).
 - **Brand layer:** the IARDA brand identity system that the WMS is built on (described below).
 

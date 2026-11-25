@@ -25,7 +25,8 @@ import { ProfilePage } from "./pages/Profile";
 import { RequestsPage, RequestFormPage, RequestDetailPage, DeliveryNotePage } from "./pages/Requests";
 import { ReceiptsPage, ReceiptDetailPage, PurchaseOrdersPage, PurchaseOrderDetailPage } from "./pages/Inbound";
 import { StockPage } from "./pages/Stock";
-import { MobileHome, MobilePutawayList, MobilePutawayTask, MobilePickLists, MobilePickList, MobileLookup } from "./pages/Mobile";
+import { MobileHome, MobilePutawayList, MobilePutawayTask, MobilePickLists, MobilePickList, MobileLookup, MobileCountList, MobileCount, MobileMove } from "./pages/Mobile";
+import { ApprovalsPage, TransfersPage, TransferDetailPage, ReturnsPage, ReturnDetailPage, CountsPage, CountDetailPage, AdjustmentsPage, AdjustmentDetailPage, DisposalsPage, DisposalDetailPage } from "./pages/Control";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e: any) => n < 1 && !(e?.status >= 400 && e?.status < 500), refetchOnWindowFocus: false } } });
 
@@ -55,6 +56,9 @@ const router = createBrowserRouter([
   { path: "/m/pick", element: <RequireAuth><MobilePickLists /></RequireAuth> },
   { path: "/m/pick/:id", element: <RequireAuth><MobilePickList /></RequireAuth> },
   { path: "/m/lookup", element: <RequireAuth><MobileLookup /></RequireAuth> },
+  { path: "/m/count", element: <RequireAuth><MobileCountList /></RequireAuth> },
+  { path: "/m/count/:id", element: <RequireAuth><MobileCount /></RequireAuth> },
+  { path: "/m/move", element: <RequireAuth><MobileMove /></RequireAuth> },
   {
     path: "/",
     element: <RequireAuth><Layout /></RequireAuth>,
@@ -84,6 +88,17 @@ const router = createBrowserRouter([
       { path: "inbound/pos", element: <Guard perms={["po.read"]}><PurchaseOrdersPage /></Guard> },
       { path: "inbound/pos/:id", element: <Guard perms={["po.read"]}><PurchaseOrderDetailPage /></Guard> },
       { path: "stock", element: <Guard perms={["warehouse.read"]}><StockPage /></Guard> },
+      { path: "approvals", element: <ApprovalsPage /> },
+      { path: "transfers", element: <Guard perms={["transfer.request", "transfer.approve", "issue.execute", "receipt.execute", "audit.read"]}><TransfersPage /></Guard> },
+      { path: "transfers/:id", element: <TransferDetailPage /> },
+      { path: "returns", element: <Guard perms={["return.warehouse", "return.vendor", "return.vendor.approve", "issue.execute", "audit.read"]}><ReturnsPage /></Guard> },
+      { path: "returns/:id", element: <ReturnDetailPage /> },
+      { path: "counts", element: <Guard perms={["count.plan", "count.execute", "count.review", "audit.read"]}><CountsPage /></Guard> },
+      { path: "counts/:id", element: <CountDetailPage /> },
+      { path: "adjustments", element: <Guard perms={["adjustment.request", "adjustment.approve", "count.review", "valuation.manage", "audit.read"]}><AdjustmentsPage /></Guard> },
+      { path: "adjustments/:id", element: <AdjustmentDetailPage /> },
+      { path: "disposals", element: <Guard perms={["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"]}><DisposalsPage /></Guard> },
+      { path: "disposals/:id", element: <DisposalDetailPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },

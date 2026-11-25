@@ -84,7 +84,17 @@ export async function dashboardRoutes(app: FastifyInstance) {
           (SELECT round(extract(epoch FROM percentile_cont(0.5) WITHIN GROUP (ORDER BY putaway_completed_at - arrived_at)) / 3600, 1)
              FROM receipt r WHERE r.putaway_completed_at > now() - interval '90 days' ${wf("r.warehouse_id")}) AS dock_to_stock_h,
           (SELECT round(100.0 * sum(l.qty_issued) / nullif(sum(coalesce(l.qty_approved, l.qty_requested)), 0), 1)
-             FROM mr_line l JOIN material_request m ON m.id = l.mr_id WHERE l.deleted_at IS NULL AND m.status = 'closed' ${wf("m.warehouse_id")}) AS fill_rate_pct`, wp);
+             FROM mr_line l JOIN material_request m ON m.id = l.mr_id WHERE l.deleted_at IS NULL AND m.status = 'closed' ${wf("m.warehouse_id")}) AS fill_rate_pct,
+          -- inventory accuracy: counted lines whose first count matched the system within tolerance, last 90 days
+          (SELECT round(100.0 * count(*) FILTER (WHERE abs(l.qty_count1 - l.qty_system1) <= l.qty_system1 * coalesce((s.value ->> coalesce(i.abc_class, 'C'))::numeric, 2) / 100)
+                        / nullif(count(*), 0), 1)
+             FROM count_line l JOIN count_plan p ON p.id = l.plan_id JOIN item i ON i.id = l.item_id LEFT JOIN setting s ON s.key = 'count.tolerance_pct'
+            WHERE l.qty_count1 IS NOT NULL AND l.counted1_at > now() - interval '90 days' ${wf("p.warehouse_id")}) AS accuracy_pct`, wp);
+      out.control = await one(pool, `SELECT
+          (SELECT count(*)::int FROM transfer_order t WHERE t.status = 'in_transit' ${whScope === "all" ? "" : "AND (t.from_warehouse_id = ANY($1) OR t.to_warehouse_id = ANY($1))"}) AS in_transit,
+          (SELECT count(*)::int FROM count_plan p WHERE p.status IN ('counting','review') ${wf("p.warehouse_id")}) AS counts_open,
+          (SELECT count(*)::int FROM adjustment a WHERE a.status IN ('pending_approval','approved') ${wf("a.warehouse_id")}) AS adjustments_open,
+          (SELECT count(*)::int FROM stock_balance b WHERE b.qty_on_hand > 0 AND b.stock_status IN ('quarantine','damaged') ${wf("b.warehouse_id")}) AS quarantine_lines`, wp);
       out.expiringLots = await many(pool, `SELECT i.id AS item_id, i.item_code, i.name_ar, i.name_en, l.lot_no, l.expiry_date, w.code AS warehouse_code, sum(b.qty_on_hand) AS qty
           FROM stock_balance b JOIN stock_lot l ON l.id = b.lot_id JOIN item i ON i.id = b.item_id JOIN warehouse w ON w.id = b.warehouse_id
          WHERE b.qty_on_hand > 0 AND l.expiry_date <= current_date + 30 ${wf("b.warehouse_id")}

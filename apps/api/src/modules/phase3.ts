@@ -254,7 +254,8 @@ export async function phase3Routes(app: FastifyInstance) {
     const counters = await many(pool, "SELECT id, name_ar, name_en FROM app_user WHERE id = ANY($1)", [pl.counter_ids]);
     const adj = await one(pool, "SELECT id, adj_no, status, value_abs, value_net FROM adjustment WHERE count_plan_id = $1 ORDER BY created_at DESC LIMIT 1", [id]);
     return { ...pl, counters, adjustment: adj, blindHidden: hide, events: await events("CNT", id),
-      lines: hide ? lines.map(({ qty_snapshot, qty_system1, qty_system2, variance_qty, variance_value, within_tolerance, ...l }) => l) : lines,
+      // blind: counters see neither book quantities nor a colleague's count (independent recount)
+      lines: hide ? lines.map(({ qty_snapshot, qty_system1, qty_system2, qty_count1, qty_count2, final_qty, variance_qty, variance_value, unit_cost, within_tolerance, ...l }) => l) : lines,
       actions: { release: pl.status === "draft" && can(u, "count.plan"), count: pl.status === "counting" && isCounter, finish: pl.status === "counting" && can(u, "count.review") } };
   });
   app.post("/api/counts", { preHandler: requirePerm("count.plan"), schema: { tags: ["counting"], summary: "Create count plan (annual / cycle / surprise)" } }, async (req, rep) => {
@@ -371,6 +372,18 @@ export async function phase3Routes(app: FastifyInstance) {
     await withTx(txCtx(req), (c) => cnt.postDisposal(c, req.user!.id, id));
     return { ok: true };
   });
+
+  // ================================================================ pickers for forms
+  app.get("/api/counters", { preHandler: requirePerm("count.plan"), schema: { tags: ["counting"], summary: "Users who may count in a warehouse" } }, async (req) => {
+    const { warehouseId } = parse(z.object({ warehouseId: uuid }), req.query);
+    return { data: await many(pool, `SELECT DISTINCT u.id, u.name_ar, u.name_en, r.code AS role FROM app_user u JOIN user_role ur ON ur.user_id = u.id AND ur.is_active
+        JOIN role r ON r.id = ur.role_id JOIN role_permission rp ON rp.role_id = r.id AND rp.permission_key = 'count.execute' AND rp.is_granted
+       WHERE u.status = 'active' AND u.deleted_at IS NULL AND (ur.warehouse_ids IS NULL OR $1 = ANY(ur.warehouse_ids)) ORDER BY r.code, u.name_ar`, [warehouseId]) };
+  });
+  app.get("/api/disposal-committee", { preHandler: requirePerm("disposal.recommend"), schema: { tags: ["counting"] } }, async () => ({
+    data: await many(pool, `SELECT u.id, u.name_ar, u.name_en FROM app_user u JOIN user_role ur ON ur.user_id = u.id AND ur.is_active
+                              JOIN role r ON r.id = ur.role_id AND r.code = 'CDC' WHERE u.status = 'active' AND u.deleted_at IS NULL ORDER BY u.name_ar`),
+  }));
 
   // ================================================================ ABC classification (drives cycle counts)
   app.post("/api/classification/abc", { preHandler: requirePerm("planning.manage", "count.plan"), schema: { tags: ["counting"], summary: "Recompute ABC classes" } }, async (req) =>
