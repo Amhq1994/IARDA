@@ -11,8 +11,8 @@ const MODULES: Record<string, [string, string]> = {
   category: ["التصنيفات", "Categories"], warehouse: ["المستودعات", "Warehouses"], supplier: ["الموردون", "Suppliers"], po: ["أوامر الشراء", "Purchase orders"],
   asn: ["إشعارات الشحن", "ASN"], receipt: ["الاستلام", "Receiving"], inspection: ["الفحص", "Inspection"], grn: ["سند الاستلام", "GRN"],
   putaway: ["التخزين", "Put-away"], invoice: ["الفواتير", "Invoices"], request: ["الطلبات", "Requests"], issue: ["الصرف", "Issue"], pick: ["التجهيز", "Picking"],
-  delivery: ["التسليم", "Delivery"], transfer: ["النقل", "Transfers"], return: ["المرتجعات", "Returns"], count: ["الجرد", "Counting"],
-  adjustment: ["التسويات", "Adjustments"], disposal: ["الإتلاف", "Disposal"], planning: ["التخطيط", "Planning"], pr: ["طلبات الشراء", "Requisitions"],
+  delivery: ["التسليم", "Delivery"], transfer: ["النقل", "Transfers"], return: ["الرجيع", "Returns"], count: ["الجرد", "Counting"],
+  adjustment: ["اعتماد الفروقات", "Variances"], disposal: ["الإتلاف", "Disposal"], planning: ["التخطيط", "Planning"], pr: ["طلبات الشراء", "Requisitions"],
   valuation: ["التقييم", "Valuation"], journal: ["القيود", "Journals"], custody: ["العهد", "Custody"], clearance: ["إخلاء الطرف", "Clearance"],
   dashboard: ["لوحة المعلومات", "Dashboard"], report: ["التقارير", "Reports"], mobile: ["الجوال", "Mobile"],
 };

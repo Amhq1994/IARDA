@@ -26,7 +26,6 @@ const NAV: NavGroup[] = [
     { to: "/transfers", icon: "slides", key: "inv.transfers", perms: ["transfer.request", "transfer.approve", "issue.execute", "receipt.execute", "audit.read"] },
     { to: "/returns", icon: "download", key: "inv.returns", perms: ["return.warehouse", "return.vendor", "return.vendor.approve", "issue.execute", "audit.read"] },
     { to: "/counts", icon: "table", key: "nav.counting", perms: ["count.plan", "count.execute", "count.review", "audit.read"] },
-    { to: "/adjustments", icon: "sheet", key: "inv.adjustments", perms: ["adjustment.request", "adjustment.approve", "count.review", "valuation.manage", "audit.read"] },
     { to: "/disposals", icon: "alert", key: "inv.disposals", perms: ["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"] },
   ] },
   { key: "nav.planning", items: [

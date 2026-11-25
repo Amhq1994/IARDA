@@ -609,27 +609,25 @@ All inbound integrations use API clients with scoped keys/OAuth client credentia
 
 ## 6. Demo seed data
 
-- **Warehouses (3):**
-  - المستودع الرئيسي – الرياض: central, about 400 bins.
-  - مستودع المحمية – الشمالي: site warehouse.
-  - مستودع قطع الغيار والصيانة: spare parts.
-- **Warehouse structure:** each warehouse has Receiving, Inspection, Storage, Quarantine, Picking, Returns and Damaged zones, broken down into aisles, racks and bins.
-- **Items:** 200 items with Arabic names in about 12 categories and 35 groups, for example:
-  - مستلزمات مكتبية (office supplies)
-  - أدوات نظافة (cleaning supplies)
-  - قطع غيار مركبات (vehicle spare parts)
-  - معدات سلامة (safety equipment)
-  - مستلزمات زراعية وبذور (agricultural supplies and seeds)
-  - أعلاف (fodder)
-  - معدات تخييم وحراسة (camping and ranger equipment)
-  - أجهزة تقنية (IT equipment)
-  - وقود وزيوت (fuel and oils)
-  - أثاث (furniture)
-  - مواد كهربائية (electrical materials)
-  - أدوية بيطرية (veterinary medicines), including batch and expiry tracking
-- **Item variety:** batches, serials (IT and assets), expiry dates (medicines, seeds), and multiple units of measure (كرتون / علبة / حبة: carton / box / piece).
+- **Warehouses (5):**
+  - مستودع قطع الغيار (SPR): spare parts, FIFO.
+  - مستودع مستهلكات النظافة (CLN): cleaning consumables, FEFO.
+  - مستودع مستهلكات الضيافة (HSP): hospitality consumables, FEFO.
+  - مستودع الهالك (SCR): scrap and items awaiting disposal.
+  - مستودع الأصول (AST): assets (IT, furniture, safety and field equipment), serial-tracked.
+- **Warehouse structure:** each warehouse has Receiving, Inspection, Storage, Quarantine, Picking, الرجيع (returns) and Damaged zones, broken down into aisles, racks and bins.
+- **Items:** 200 items with Arabic names in 8 categories:
+  - مواد النظافة (cleaning supplies)
+  - مستهلكات الضيافة (hospitality consumables)
+  - قطع غيار المعدات والمرافق (equipment and facility spare parts: generators, HVAC, plumbing, tools)
+  - المواد الكهربائية (electrical materials)
+  - معدات السلامة (safety equipment)
+  - معدات التخييم والجوالة (camping and ranger equipment)
+  - الأجهزة التقنية (IT equipment)
+  - الأثاث (furniture)
+- **Item variety:** batches, serials (IT and assets), expiry dates (cleaning and hospitality consumables), and multiple units of measure (كرتون / علبة / حبة: carton / box / piece).
 - **Transaction history:** 12 months of realistic transactions (GRNs, issues, transfers, counts), so the KPIs, ABC/XYZ classes, forecasts and dead-stock reports have data to work with.
-- **Users:** about 25 demo users covering all 14 roles, across 6 departments.
+- **Users:** 28 demo users (system administrator: عبدالعزيز محمد القحطاني) covering all 14 roles, across 6 departments.
 - **Supporting records:** suppliers with portal users, POs with Etimad references, and open requests in every state of the request lifecycle.
 
 ## 7. Phase plan (each phase ends with a demo and your confirmation)

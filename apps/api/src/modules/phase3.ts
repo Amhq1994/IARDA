@@ -95,7 +95,8 @@ export async function phase3Routes(app: FastifyInstance) {
                    WHERE l.transfer_id = $1 ORDER BY i.item_code`, [id]),
       events("TR", id), approvals("TR", id)]);
     const approverIds = ap.filter((a) => a.status === "approved").map((a) => a.acted_by);
-    return { ...t, lines, shipments, events: ev, approvals: ap, actions: {
+    const adjustment = await one(pool, "SELECT id, adj_no, status FROM adjustment WHERE transfer_id = $1 ORDER BY created_at DESC LIMIT 1", [id]);
+    return { ...t, lines, shipments, adjustment, events: ev, approvals: ap, actions: {
       submit: t.status === "draft" && t.requested_by === u.id,
       decide: ap.some((a) => a.status === "pending" && a.assignee_id === u.id && a.revision === t.revision),
       ship: t.status === "approved" && inScope("issue.execute", t.from_warehouse_id) && !approverIds.includes(u.id),

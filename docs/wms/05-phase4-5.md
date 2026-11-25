@@ -194,14 +194,14 @@ Every generated report is stored encrypted, with its run history.
 ## Demo walkthrough (password `Iarda@2026!`)
 
 1. **`planner`:** open *Planning & replenishment*, open the *Reorder* tab, select lines, then *Create requisitions*. *Dead & slow-moving stock* is the last tab.
-2. **`wm.north`:** open *Approvals inbox* and approve the pending requisition. **`proc`** then converts it to a PO from its page.
+2. **`wm.assets`:** open *Approvals inbox* and approve the pending requisition. **`proc`** then converts it to a PO from its page.
 3. **`fin`:** open *Valuation & journals*: summary (reconciled), item valuation (WAVG vs FIFO), then a journal. *Post*, then *Record transfer to ERP*. Try *Compute provision*.
-4. **`req.it`:** open *Custody → My custody* and acknowledge the second asset. **`sk.riyadh`** sees the register, and the blocked clearance of `req.it` with its reasons. **`irc3`**'s clearance is cleared, with a certificate.
-5. **`wm.riyadh`:** open *KPIs*, then *Reports*: download the stock report as PDF and Excel, and run a schedule now.
+4. **`req.it`:** open *Custody → My custody* and acknowledge the second asset. **`sk.cleaning`** sees the register, and the blocked clearance of `req.it` with its reasons. **`irc3`**'s clearance is cleared, with a certificate.
+5. **`wm.cons`:** open *KPIs*, then *Reports*: download the stock report as PDF and Excel, and run a schedule now.
 6. **`admin`:** open *Integrations*, create a client and copy its key. Then, using the key you just copied:
 
    ```
-   curl -H "x-api-key: <the key>" http://localhost:3000/api/integration/v1/stock?warehouseCode=RYD
+   curl -H "x-api-key: <the key>" http://localhost:3000/api/integration/v1/stock?warehouseCode=CLN
    ```
 7. **`supplier.rowad`:** open *Supplier portal*.
 

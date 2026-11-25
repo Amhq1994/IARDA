@@ -65,7 +65,7 @@ export async function warehouseRoutes(app: FastifyInstance) {
 
   const whBody = z.object({
     code: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{2,10}$/), nameAr, nameEn,
-    warehouseType: z.enum(["central", "site", "spare_parts"]), city: z.string().max(60).nullable().optional(),
+    warehouseType: z.enum(["central", "site", "spare_parts", "consumables", "assets", "scrap"]), city: z.string().max(60).nullable().optional(),
     address: z.string().max(300).nullable().optional(), latitude: z.number().min(-90).max(90).nullable().optional(),
     longitude: z.number().min(-180).max(180).nullable().optional(), managerUserId: uuid.nullable().optional(),
     defaultPickingRule: z.enum(["FIFO", "FEFO", "LIFO"]).default("FIFO"),
@@ -96,7 +96,7 @@ export async function warehouseRoutes(app: FastifyInstance) {
     const { id } = parse(idParam, req.params);
     assertWarehouseInScope(req.user!, "warehouse.manage", id);
     const b = parse(z.object({
-      nameAr: nameAr.optional(), nameEn: nameEn.optional(), warehouseType: z.enum(["central", "site", "spare_parts"]).optional(),
+      nameAr: nameAr.optional(), nameEn: nameEn.optional(), warehouseType: z.enum(["central", "site", "spare_parts", "consumables", "assets", "scrap"]).optional(),
       city: z.string().max(60).nullable().optional(), address: z.string().max(300).nullable().optional(),
       managerUserId: uuid.nullable().optional(), defaultPickingRule: z.enum(["FIFO", "FEFO", "LIFO"]).optional(),
       isActive: z.boolean().optional(), version: versionField,

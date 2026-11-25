@@ -43,15 +43,15 @@ export const PERMISSIONS = {
   "transfer.bin": { ar: "النقل بين المواقع", en: "Bin-to-bin transfer" },
   "transfer.request": { ar: "طلب نقل بين المستودعات", en: "Request inter-warehouse transfer" },
   "transfer.approve": { ar: "اعتماد النقل بين المستودعات", en: "Approve inter-warehouse transfer" },
-  "return.warehouse": { ar: "الإرجاع للمستودع", en: "Return to warehouse" },
+  "return.warehouse": { ar: "الرجيع للمستودع", en: "Return to warehouse" },
   "return.vendor": { ar: "الإرجاع للمورد", en: "Return to vendor" },
   "return.vendor.approve": { ar: "اعتماد الإرجاع للمورد", en: "Approve return to vendor" },
   // counting, adjustment, disposal
   "count.plan": { ar: "خطط الجرد", en: "Count plans" },
   "count.execute": { ar: "تنفيذ الجرد", en: "Perform counts" },
   "count.review": { ar: "مراجعة الفروقات وإعادة الجرد", en: "Variance review & recount" },
-  "adjustment.request": { ar: "طلب تسوية", en: "Request adjustment" },
-  "adjustment.approve": { ar: "اعتماد التسويات", en: "Approve adjustments" },
+  "adjustment.request": { ar: "ترحيل فروقات الجرد والاستلام", en: "Raise / post stock variances" },
+  "adjustment.approve": { ar: "اعتماد الفروقات والحجر", en: "Approve variances & quarantine" },
   "disposal.recommend": { ar: "التوصية بالإتلاف/الشطب", en: "Recommend write-off / disposal" },
   "disposal.approve": { ar: "اعتماد الإتلاف/الشطب", en: "Approve write-off / disposal" },
   // planning, valuation, custody

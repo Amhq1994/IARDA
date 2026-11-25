@@ -1,4 +1,4 @@
-# WMS Phase 3: Transfers, Returns, Counting, Adjustments & Disposal
+# WMS Phase 3: Transfers, الرجيع (Returns), Counting (الجرد) & Disposal
 
 Status: **delivered, awaiting confirmation** before Phase 4 (planning, replenishment, valuation and journals, reports).
 
@@ -11,7 +11,7 @@ Status: **delivered, awaiting confirmation** before Phase 4 (planning, replenish
 - **One generic DoA lifecycle** for four document types: transfers (TR), adjustments (ADJ), disposals (DSP) and returns to vendor (RTV). It uses the same `doa_rule` and `approval_task` machinery as material requests, so delegation, SLA and escalation all apply.
 - **`/approvals`** lists every task assigned to the user across all document types, including material requests.
 - **Reject and return** both require a reason.
-- **When no other approver exists**, the SoD exclusion falls back to another holder of the same role. For example, an adjustment raised by the Riyadh warehouse manager is approved by the northern warehouse manager. It never falls back to the requester.
+- **When no other approver exists**, the SoD exclusion falls back to another holder of the same role. For example, a variance raised by the consumables warehouse manager is approved by the assets warehouse manager. It never falls back to the requester.
 
 Seeded DoA matrix (configurable in `doa_rule`):
 
@@ -84,9 +84,11 @@ Seeded DoA matrix (configurable in `doa_rule`):
 ![Variance report — 1st count, independent recount, variance value, posted adjustment](screenshots/p3-count-variances.jpg)
 ![Blind count on the phone](screenshots/p3-mobile-blind-count.jpg)
 
-### Adjustments (approval required)
+### Variance approval (inside counting and transfers)
 
-- **Sources:** count variances, manual requests (a bin plus a signed delta), transit shortfalls, and quarantine.
+There is no separate adjustments screen. Variances are approved and posted in a «اعتماد الفروقات» panel on the screen that raised them: the count plan or the transfer. Old `/adjustments` links open that screen. Manual adjustments are no longer offered in the UI.
+
+- **Sources:** count variances and transit shortfalls.
 - **Approval:** follows the value-based DoA (Finance above SAR 10,000).
 - **SoD-3:**
   - Counters cannot approve the resulting adjustment.
@@ -109,7 +111,7 @@ Seeded DoA matrix (configurable in `doa_rule`):
 
 ### Dashboard
 
-- **New inventory-control indicators:** in transit, open counts, adjustments in progress, and quarantine lines.
+- **New inventory-control indicators:** in transit, open counts, and quarantine lines.
 - **Inventory accuracy KPI:** count lines whose first count matched the book within tolerance ÷ lines counted, over the last 90 days. The target is ≥ 98%.
 
 ## API (new)
@@ -130,14 +132,14 @@ The full schema is at `/api/docs`.
 
 ## Demo walkthrough
 
-Reset the database with `scripts/db-reset.sh`. The Phase 3 seed creates every state through the real services: 6 transfers (closed, with a discrepancy, in transit, approved, pending, draft), bin moves, 3 returns, 2 RTVs, a closed cycle count with variances and its posted adjustment, a surprise count in progress, a planned annual count, a manual adjustment and a transit adjustment pending approval, and 2 disposals (one posted, one pending).
+Reset the database with `scripts/db-reset.sh`. The Phase 3 seed creates every state through the real services: 6 transfers (closed, with a discrepancy, in transit, approved, pending, draft), bin moves, 3 returns, 2 RTVs, a closed cycle count with variances and its posted adjustment, a surprise count in progress, a planned annual count, a transit variance pending approval, and 2 disposals (one posted, one pending).
 
-1. **`wm.riyadh`:** open the *Approvals inbox*, approve the pending transfer, then open *Counting → CNT-…-000001* and filter by *Variance*.
-2. **`sk.north`:** open the in-transit transfer and click *Receive at destination*. Change a quantity first to see the discrepancy adjustment.
-3. **`ww.north` on a phone (`/m` → Counting):** scan the bin and enter the count. The book quantity is never shown. An out-of-tolerance line asks a colleague (`cdc1`) to recount.
-4. **`wm.north`:** count reviewer for the North sites. Finish the surprise count once all lines are counted, then approve the disposal (L1).
+1. **`wm.cons`:** open the *Approvals inbox*, approve the pending transfer, then open *Counting → CNT-…-000001* and filter by *Variance*.
+2. **`sk.hosp`:** open the in-transit transfer and click *Receive at destination*. Change a quantity first to see the discrepancy adjustment.
+3. **`ww.hosp` on a phone (`/m` → Counting):** scan the bin and enter the count. The book quantity is never shown. An out-of-tolerance line asks a colleague (`cdc1`) to recount.
+4. **`wm.assets`:** approve the transit variance shown on transfer TR-…-000002 (AST → SCR).
 5. **`fin`:** approve the disposal (L2) and any adjustment above SAR 10,000.
-6. **`sk.riyadh`:** post the approved adjustment or disposal. Creators, approvers, counters and committee members are refused.
+6. **`sk.cleaning`:** post the approved adjustment or disposal. Creators, approvers, counters and committee members are refused.
 7. **`cdc1`:** go to *Returns → Quarantine & damaged*, choose *Disposal / write-off minutes* on a damaged line, upload the minutes PDF, then recommend.
 
 ## Tests

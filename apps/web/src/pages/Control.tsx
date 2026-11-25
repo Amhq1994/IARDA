@@ -278,7 +278,7 @@ export function TransferDetailPage() {
           {d.shipped_at && <div><dt>{t("inv.shipped")}</dt><dd>{fmtDate(d.shipped_at, lang, true)}</dd></div>}
           {d.received_at && <div><dt>{t("inv.receivedQty")}</dt><dd>{fmtDate(d.received_at, lang, true)}</dd></div>}
         </dl>
-        {d.has_discrepancy && <div style={{ marginTop: 12 }}><Alert kind="warning">{t("inv.discrepancy")} — <Link to="/adjustments">{t("inv.adjustments")}</Link></Alert></div>}
+        {d.has_discrepancy && <div style={{ marginTop: 12 }}><Alert kind="warning">{t("inv.discrepancy")}</Alert></div>}
       </section>
       <div className="grid grid--2-1">
         <div>
@@ -303,6 +303,7 @@ export function TransferDetailPage() {
             </Section>
           )}
         </div>
+        {d.adjustment && <div style={{ gridColumn: "1 / -1" }}><VarianceApproval adjId={d.adjustment.id} keys={[["transfer", id!]]} /></div>}
         <Side d={d} />
       </div>
     </>
@@ -604,7 +605,7 @@ export function CountDetailPage() {
           <div><dt>{t("inv.counters")}</dt><dd>{d.counters.map((c: any) => L(c)).join("، ")}</dd></div>
           <div><dt>{t("inv.progress")}</dt><dd className="ltr">{counted} / {d.lines.length}</dd></div>
           {!d.blindHidden && d.status !== "draft" && <div><dt>{t("inv.varianceValue")}</dt><dd>{fmtSar(varValue)} <small className="muted">({varLines.length})</small></dd></div>}
-          {d.adjustment && <div><dt>{t("inv.adjustments")}</dt><dd><Link className="mono" to={`/adjustments/${d.adjustment.id}`}>{d.adjustment.adj_no}</Link> <St s={d.adjustment.status} /></dd></div>}
+          {d.adjustment && <div><dt>{t("inv.adjustments")}</dt><dd><span className="mono">{d.adjustment.adj_no}</span> <St s={d.adjustment.status} /></dd></div>}
           {d.notes && <div style={{ gridColumn: "1 / -1" }}><dt>{t("common.notes")}</dt><dd>{d.notes}</dd></div>}
         </dl>
         {d.blindHidden && <div style={{ marginTop: 12 }}><Alert>{t("inv.blindHidden")}</Alert></div>}
@@ -634,131 +635,62 @@ export function CountDetailPage() {
               })}</tbody></table></div>
           )}
         </Section>
+        {d.adjustment && <VarianceApproval adjId={d.adjustment.id} keys={[["count", id!]]} />}
         <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}><Side d={d} /></div>
       </div>
     </>
   );
 }
 
-// ============================================================ adjustments
-export function AdjustmentsPage() {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language;
-  const { can } = useAuth();
-  const nav = useNavigate();
-  const [open, setOpen] = useState(false);
-  const r = useQuery({ queryKey: ["adjustments"], queryFn: () => api.get("/api/adjustments") });
-  const SRC: Record<string, string> = { count: "inv.srcCount", manual: "inv.srcManual", transit: "inv.srcTransit", quarantine: "inv.srcQuarantine" };
-  return (
-    <>
-      <PageHead icon="sheet" title={t("inv.adjustments")} actions={can("adjustment.request") && <button className="btn btn--primary" onClick={() => setOpen(true)}><Icon name="plus" />{t("inv.newAdjustment")}</button>} />
-      <section className="card">
-        {r.isLoading ? <Loading /> : (
-          <ListCard empty={!r.data.data.length}
-            head={<><th>{t("common.code")}</th><th>{t("inv.source")}</th><th>{t("ops.warehouse")}</th><th className="c">{t("ops.lines")}</th>
-              <th className="c">{t("inv.valueAbs")}</th><th className="c col-opt">{t("inv.valueNet")}</th><th className="c">{t("common.status")}</th><th className="col-opt">{t("common.updatedAt")}</th></>}
-            rows={r.data.data.map((x: any) => (
-              <tr key={x.id} className="is-clickable" onClick={() => nav(`/adjustments/${x.id}`)}>
-                <td className="mono"><Link to={`/adjustments/${x.id}`} onClick={(e) => e.stopPropagation()}>{x.adj_no}</Link></td>
-                <td>{t(SRC[x.source])}{(x.plan_no || x.tr_no) && <><br /><small className="mono muted">{x.plan_no ?? x.tr_no}</small></>}</td>
-                <td className="mono">{x.warehouse_code}</td><td className="n">{x.lines}</td><td className="n">{fmtSar(x.value_abs)}</td>
-                <td className="n col-opt">{fmtSar(x.value_net)}</td><td className="c"><St s={x.status} /></td><td className="col-opt"><small>{fmtDate(x.updated_at, lang, true)}</small></td>
-              </tr>
-            ))} />
-        )}
-      </section>
-      {open && <AdjustmentModal onClose={() => setOpen(false)} />}
-    </>
-  );
-}
-
-function AdjustmentModal({ onClose }: { onClose: () => void }) {
-  const { t, i18n } = useTranslation();
-  const L = useL();
-  const nav = useNavigate();
-  const a = useAct([["adjustments"]]);
-  const [f, setF] = useState({ warehouseId: "", reason: "" });
-  const [loc, setLoc] = useState("");
-  const [lines, setLines] = useState<{ item: any; location: any; delta: string }[]>([]);
-  const valid = f.warehouseId && f.reason.trim().length >= 3 && lines.length > 0 && lines.every((l) => Number(l.delta) !== 0 && !Number.isNaN(Number(l.delta)));
-  async function addItem(it: any) {
-    try {
-      const l = await api.get("/api/locations/lookup", { code: loc });
-      if (l.warehouse_id !== f.warehouseId || l.level !== "bin") throw new Error(i18n.language === "ar" ? "الخانة ليست في المستودع المحدد" : "Bin is not in the selected warehouse");
-      setLines([...lines, { item: it, location: l, delta: "-1" }]);
-    } catch (e) { toast.error(errorText(e, i18n.language)); }
-  }
-  return (
-    <Modal wide title={t("inv.newAdjustment")} onClose={onClose} footer={<><button className="btn btn--secondary" onClick={onClose}>{t("common.cancel")}</button>
-      <button className="btn btn--primary" disabled={!valid || a.busy} onClick={() => a.run(async () => {
-        const adj = await api.post("/api/adjustments", { ...f, lines: lines.map((l) => ({ locationId: l.location.id, itemId: l.item.id, qtyDelta: Number(l.delta) })) });
-        await api.post(`/api/adjustments/${adj.id}/submit`);
-        return adj;
-      }, (adj) => nav(`/adjustments/${adj.id}`))}>{t("ops.submit")}</button></>}>
-      <div className="grid" style={{ gridTemplateColumns: "1fr 2fr", gap: 12 }}>
-        <WhSelect label={t("ops.warehouse")} value={f.warehouseId} onChange={(v) => setF({ ...f, warehouseId: v })} />
-        <Field label={t("inv.reason")} required><input className="input" value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} /></Field>
-      </div>
-      <div className="grid" style={{ gridTemplateColumns: "1fr 2fr", gap: 12, alignItems: "end" }}>
-        <Field label={t("ops.location")}><input className="input mono" value={loc} onChange={(e) => setLoc(e.target.value)} placeholder="RYD-A-01-01-A" /></Field>
-        <div>{loc.length >= 3 && f.warehouseId ? <ItemPicker onPick={addItem} /> : <small className="muted">{t("ops.scanLocation")}</small>}</div>
-      </div>
-      {lines.length > 0 && (
-        <div className="table-wrap" style={{ marginTop: 10 }}><table className="table"><thead><tr><th>{t("ops.location")}</th><th>{t("ops.item")}</th><th className="c">{t("inv.delta")}</th><th /></tr></thead>
-          <tbody>{lines.map((l, i) => (
-            <tr key={i}><td className="mono">{l.location.full_code}</td><td><span className="mono">{l.item.item_code}</span><br />{L(l.item)}</td>
-              <td><input className="input" type="number" style={{ width: 90 }} value={l.delta} onChange={(e) => setLines(lines.map((x, j) => (j === i ? { ...x, delta: e.target.value } : x)))} /></td>
-              <td><button className="btn btn--ghost btn--sm" onClick={() => setLines(lines.filter((_, j) => j !== i))}>{t("common.delete")}</button></td></tr>
-          ))}</tbody></table></div>
-      )}
-    </Modal>
-  );
-}
-
-export function AdjustmentDetailPage() {
-  const { id } = useParams();
+// ============================================================ variance approval (inside the count and transfer screens)
+/** Count and transfer-receipt variances are approved and posted from the screen that raised them (no separate adjustments screen). */
+export function VarianceApproval({ adjId, keys }: { adjId: string; keys: string[][] }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const L = useL();
-  const r = useQuery({ queryKey: ["adjustment", id], queryFn: () => api.get(`/api/adjustments/${id}`) });
-  const a = useAct([["adjustment", id!], ["adjustments"], ["approvals-inbox"]]);
-  if (r.isLoading) return <Loading />;
+  const r = useQuery({ queryKey: ["variance", adjId], queryFn: () => api.get(`/api/adjustments/${adjId}`) });
+  const all = [["variance", adjId], ...keys];
+  const a = useAct(all);
+  if (r.isLoading) return <Section icon="shield" title={t("inv.adjustments")}><Loading /></Section>;
+  if (r.isError) return null;
   const d = r.data;
-  const SRC: Record<string, string> = { count: "inv.srcCount", manual: "inv.srcManual", transit: "inv.srcTransit", quarantine: "inv.srcQuarantine" };
   return (
-    <>
-      <PageHead icon="sheet" title={d.adj_no} crumbs={<Link to="/adjustments">{t("inv.adjustments")}</Link>} actions={<>
-        <St s={d.status} />
-        {d.actions.submit && <button className="btn btn--primary" disabled={a.busy} onClick={() => a.run(() => api.post(`/api/adjustments/${id}/submit`))}>{t("ops.submit")}</button>}
-        {d.actions.decide && <DecisionBar docType="ADJ" id={id!} keys={[["adjustment", id!], ["approvals-inbox"]]} />}
-        {d.actions.post && <button className="btn btn--primary" disabled={a.busy} onClick={() => a.run(() => api.post(`/api/adjustments/${id}/post`))}><Icon name="check" />{t("inv.post")}</button>}
-      </>} />
-      <section className="card section">
-        <dl className="dl">
-          <div><dt>{t("inv.source")}</dt><dd>{t(SRC[d.source])}{d.plan_no && <> · <span className="mono">{d.plan_no}</span></>}{d.tr_no && <> · <span className="mono">{d.tr_no}</span></>}</dd></div>
-          <div><dt>{t("ops.warehouse")}</dt><dd>{d.warehouse_code} — {L(d, "warehouse")}</dd></div>
-          <div><dt>{t("inv.valueAbs")}</dt><dd>{fmtSar(d.value_abs)}</dd></div>
-          <div><dt>{t("inv.valueNet")}</dt><dd>{fmtSar(d.value_net)}</dd></div>
-          <div><dt>{t("common.createdBy")}</dt><dd>{lang === "ar" ? d.created_by_ar : d.created_by_en}</dd></div>
-          {d.posted_at && <div><dt>{t("inv.post")}</dt><dd>{fmtDate(d.posted_at, lang, true)}</dd></div>}
-          <div style={{ gridColumn: "1 / -1" }}><dt>{t("inv.reason")}</dt><dd>{d.reason}</dd></div>
-        </dl>
-        {d.status === "approved" && !d.actions.post && <div style={{ marginTop: 12 }}><Alert>{lang === "ar" ? "فصل المهام: يرحّل التسوية مستخدم غير منشئها ومعتمديها والقائمين بالجرد." : "SoD: the adjustment is posted by someone other than its creator, approvers and counters."}</Alert></div>}
-      </section>
-      <div className="grid grid--2-1">
-        <Section icon="table" title={t("ops.lines")}>
-          <div className="table-wrap"><table className="table"><thead><tr><th>{t("ops.location")}</th><th>{t("ops.item")}</th><th>{t("ops.lot")}</th><th className="c">{t("common.status")}</th>
-            <th className="c">{t("inv.delta")}</th><th className="c">{t("ops.avgCost")}</th><th className="c">{t("ops.value")}</th></tr></thead>
-            <tbody>{d.lines.map((l: any) => (
-              <tr key={l.id}><td className="mono">{l.full_code}</td><td><Link className="mono" to={`/items/${l.item_id}`}>{l.item_code}</Link><br /><small>{L(l)}</small></td>
-                <td className="mono">{l.serial_no ?? l.lot_no ?? "—"}</td><td className="c"><St s={l.stock_status} dict="stockStatus" /></td>
-                <td className="n"><b>{Number(l.qty_delta) > 0 ? "+" : ""}{fmtNum(l.qty_delta)}</b></td><td className="n">{fmtNum(l.unit_cost, 4)}</td><td className="n">{fmtSar(l.value)}</td></tr>
-            ))}</tbody></table></div>
-        </Section>
-        <Side d={d} />
-      </div>
-    </>
+    <Section icon="shield" title={t("inv.adjustments")} actions={<div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+      <St s={d.status} />
+      {d.actions.submit && <button className="btn btn--primary btn--sm" disabled={a.busy} onClick={() => a.run(() => api.post(`/api/adjustments/${adjId}/submit`))}>{t("ops.submit")}</button>}
+      {d.actions.decide && <DecisionBar docType="ADJ" id={adjId} keys={all} />}
+      {d.actions.post && <button className="btn btn--primary btn--sm" disabled={a.busy} onClick={() => a.run(() => api.post(`/api/adjustments/${adjId}/post`))}><Icon name="check" />{t("inv.post")}</button>}
+    </div>}>
+      <dl className="dl" style={{ marginBottom: 12 }}>
+        <div><dt>{t("common.code")}</dt><dd className="mono">{d.adj_no}</dd></div>
+        <div><dt>{t("inv.valueAbs")}</dt><dd>{fmtSar(d.value_abs)}</dd></div>
+        <div><dt>{t("inv.valueNet")}</dt><dd>{fmtSar(d.value_net)}</dd></div>
+        {d.posted_at && <div><dt>{t("inv.post")}</dt><dd>{fmtDate(d.posted_at, lang, true)}</dd></div>}
+      </dl>
+      <div className="table-wrap"><table className="table"><thead><tr><th>{t("ops.location")}</th><th>{t("ops.item")}</th><th className="c">{t("inv.delta")}</th><th className="c">{t("ops.value")}</th></tr></thead>
+        <tbody>{d.lines.map((l: any) => (
+          <tr key={l.id}><td className="mono">{l.full_code}</td><td><span className="mono">{l.item_code}</span><br /><small>{L(l)}</small></td>
+            <td className="n"><b>{Number(l.qty_delta) > 0 ? "+" : ""}{fmtNum(l.qty_delta)}</b></td><td className="n">{fmtSar(l.value)}</td></tr>
+        ))}</tbody></table></div>
+      {d.approvals.length > 0 && <div className="chain" style={{ marginTop: 12 }}>{d.approvals.filter((x: any) => x.revision === d.revision).map((x: any) => (
+        <div key={x.id} className={`chain__step${x.status === "pending" ? " is-pending" : ""}`}><span className="chain__lvl">{x.level}</span>
+          <div style={{ flex: 1 }}>{lang === "ar" ? x.assignee_ar : x.assignee_en}{x.acted_at && <div className="muted" style={{ fontSize: 12 }}>{fmtDate(x.acted_at, lang, true)}</div>}</div>
+          <DocBadge status={x.status} dict="approvalStatus" /></div>))}</div>}
+      {d.status === "approved" && !d.actions.post && <div style={{ marginTop: 12 }}><Alert>{lang === "ar" ? "فصل المهام: يرحّل الفروقات مستخدم غير منشئها ومعتمديها والقائمين بالجرد." : "SoD: variances are posted by someone other than their creator, approvers and counters."}</Alert></div>}
+    </Section>
   );
+}
+
+/** Old links (notifications, approvals inbox) to /adjustments/:id open the count or transfer that raised the variance. */
+export function AdjustmentRedirect() {
+  const { id } = useParams();
+  const nav = useNavigate();
+  const r = useQuery({ queryKey: ["variance", id], queryFn: () => api.get(`/api/adjustments/${id}`) });
+  useEffect(() => {
+    if (!r.data) return;
+    nav(r.data.count_plan_id ? `/counts/${r.data.count_plan_id}` : r.data.transfer_id ? `/transfers/${r.data.transfer_id}` : "/approvals", { replace: true });
+  }, [r.data]);
+  return r.isError ? <Empty /> : <Loading />;
 }
 
 // ============================================================ disposals

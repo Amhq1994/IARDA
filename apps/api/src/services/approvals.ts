@@ -8,7 +8,7 @@ import { actOnTask, buildChain, createTasks, DOC_LINK, type DocCtx } from "./wor
 
 export const DOC_TABLE: Record<string, { table: string; no: string; owner: string; label: [string, string] }> = {
   TR: { table: "transfer_order", no: "tr_no", owner: "requested_by", label: ["طلب نقل", "Transfer"] },
-  ADJ: { table: "adjustment", no: "adj_no", owner: "created_by", label: ["تسوية مخزون", "Adjustment"] },
+  ADJ: { table: "adjustment", no: "adj_no", owner: "created_by", label: ["فروقات المخزون", "Stock variance"] },
   DSP: { table: "disposal", no: "dsp_no", owner: "recommended_by", label: ["إتلاف/شطب", "Disposal"] },
   RTV: { table: "return_doc", no: "ret_no", owner: "created_by", label: ["إرجاع للمورد", "Return to vendor"] },
   PR: { table: "purchase_requisition", no: "pr_no", owner: "requested_by", label: ["طلب شراء", "Purchase requisition"] },

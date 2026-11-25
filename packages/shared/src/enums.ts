@@ -44,7 +44,7 @@ export const ZONE_TYPES = {
   storage: { ar: "التخزين", en: "Storage", code: "STR" },
   quarantine: { ar: "الحجر", en: "Quarantine", code: "QRN" },
   picking: { ar: "التجهيز", en: "Picking", code: "PCK" },
-  returns: { ar: "المرتجعات", en: "Returns", code: "RTN" },
+  returns: { ar: "الرجيع", en: "Returns", code: "RTN" },
   damaged: { ar: "التالف", en: "Damaged", code: "DMG" },
 } as const;
 export type ZoneType = keyof typeof ZONE_TYPES;
@@ -53,6 +53,9 @@ export const WAREHOUSE_TYPES = {
   central: { ar: "مركزي", en: "Central" },
   site: { ar: "فرعي (موقع)", en: "Site" },
   spare_parts: { ar: "قطع غيار", en: "Spare parts" },
+  consumables: { ar: "مستهلكات", en: "Consumables" },
+  assets: { ar: "أصول", en: "Assets" },
+  scrap: { ar: "هالك", en: "Scrap & obsolete" },
 } as const;
 
 export const PICKING_RULES = ["FIFO", "FEFO", "LIFO"] as const;

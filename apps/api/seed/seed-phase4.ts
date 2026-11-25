@@ -68,20 +68,20 @@ export async function seedPhase4(databaseUrl = config.databaseUrl, log = console
     await as(c, U.planner, () => plan.applyPlan(cc, U.planner, run.id));
     const pick = async (wh: string, n: number) => (await q(`SELECT id FROM planning_line WHERE run_id = $1 AND warehouse_id = $2 AND action = 'reorder' ORDER BY suggested_value DESC LIMIT $3`,
       [run.id, W[wh], n])).map((r) => r.id);
-    const prs = await as(c, U.planner, async () => plan.prsFromRun(cc, U.planner, run.id, [...(await pick("RYD", 6)), ...(await pick("NTH", 4))]));
+    const prs = await as(c, U.planner, async () => plan.prsFromRun(cc, U.planner, run.id, [...(await pick("CLN", 6)), ...(await pick("HSP", 4))]));
     for (const p of prs) {
       const pr = (await q("SELECT warehouse_id, estimated_value FROM purchase_requisition WHERE id = $1", [p.id]))[0];
-      if (pr.warehouse_id !== W.RYD) continue;
+      if (pr.warehouse_id !== W.CLN) continue;
       for (let i = 0; i < 3; i++) {
         const t = (await q("SELECT assignee_id FROM approval_task WHERE doc_type = 'PR' AND doc_id = $1 AND status = 'pending' LIMIT 1", [p.id]))[0];
         if (!t) break;
         await as(c, t.assignee_id, () => decideDoc(cc, t.assignee_id, "PR", p.id, "approve", "معتمد وفق خطة إعادة الطلب"));
       }
-      await as(c, U.proc, () => plan.convertPr(cc, U.proc, p.id, { supplierId: S["SUP-001"], etimadRef: "ETM-2026-77310", expectedDate: new Date(Date.now() + 14 * 86400e3).toISOString().slice(0, 10) }));
+      await as(c, U.proc, () => plan.convertPr(cc, U.proc, p.id, { supplierId: S["SUP-005"], etimadRef: "ETM-2026-77310", expectedDate: new Date(Date.now() + 14 * 86400e3).toISOString().slice(0, 10) }));
     }
     const freeItem = (await q(`SELECT item_id FROM planning_line WHERE run_id = $1 AND warehouse_id = $2 AND action = 'ok' LIMIT 2`, [run.id, W.SPR]));
     if (freeItem.length) {
-      await as(c, U.planner, () => plan.createPr(cc, U.planner, { warehouseId: W.SPR, notes: "احتياج مشروع صيانة المولدات (يدوي)", lines: freeItem.map((f) => ({ itemId: f.item_id, qty: 5 })) }));
+      await as(c, U.planner, () => plan.createPr(cc, U.planner, { warehouseId: W.SPR, notes: "احتياج مشروع صيانة المولدات والمكيفات (يدوي)", lines: freeItem.map((f) => ({ itemId: f.item_id, qty: 5 })) }));
     }
     // a second, later planning run (what the nightly job does) so the screen shows a fresh run after the PRs
     await as(c, U.planner, () => plan.runPlanning(cc, U.planner, null));
@@ -101,23 +101,23 @@ export async function seedPhase4(databaseUrl = config.databaseUrl, log = console
         if (!t) break;
         await as(c, t.assignee_id, () => mr.decide(cc, t.assignee_id, d.id, "approve"));
       }
-      await as(c, U["sk.riyadh"], () => mr.reserveStock(cc, U["sk.riyadh"], d.id));
-      const pl = await as(c, U["sk.riyadh"], () => mr.releasePickList(cc, U["sk.riyadh"], d.id, U["ww.riyadh1"]));
+      await as(c, U["sk.assets"], () => mr.reserveStock(cc, U["sk.assets"], d.id));
+      const pl = await as(c, U["sk.assets"], () => mr.releasePickList(cc, U["sk.assets"], d.id, U["ww.assets"]));
       const tasks = await q(`SELECT t.id, t.qty, l.full_code, i.item_code, sl.lot_no, sl.serial_no FROM pick_task t JOIN location l ON l.id = t.location_id
                              JOIN item i ON i.id = t.item_id LEFT JOIN stock_lot sl ON sl.id = t.lot_id WHERE t.pick_list_id = $1 ORDER BY t.seq`, [pl.id]);
-      for (const t of tasks) await as(c, U["ww.riyadh1"], () => mr.confirmPick(cc, U["ww.riyadh1"], t.id, { location: t.full_code, item: t.item_code, lot: t.serial_no ?? t.lot_no, qty: Number(t.qty) }));
-      await as(c, U["sk.riyadh"], () => mr.deliver(cc, U["sk.riyadh"], d.id, { receivedByUserId: u.id, receivedByName: u.name_ar, signaturePng: signaturePng(itemCode.charCodeAt(2)) }));
+      for (const t of tasks) await as(c, U["ww.assets"], () => mr.confirmPick(cc, U["ww.assets"], t.id, { location: t.full_code, item: t.item_code, lot: t.serial_no ?? t.lot_no, qty: Number(t.qty) }));
+      await as(c, U["sk.assets"], () => mr.deliver(cc, U["sk.assets"], d.id, { receivedByUserId: u.id, receivedByName: u.name_ar, signaturePng: signaturePng(itemCode.charCodeAt(2)) }));
       return (await q("SELECT id FROM custody WHERE mr_id = $1 ORDER BY custody_no", [d.id])).map((r) => r.id);
     };
-    const c1 = await custodyFor("req.it", "RYD", "CPRNG-00004", 2) ?? [];
-    const c2 = await custodyFor("req.env", "RYD", "CPFLD-00004", 1) ?? [];
-    const c3 = await custodyFor("req.mnt", "RYD", "FRCHR-00002", 1) ?? [];
+    const c1 = await custodyFor("req.it", "AST", "CPRNG-00004", 2) ?? [];
+    const c2 = await custodyFor("req.env", "AST", "CPFLD-00004", 1) ?? [];
+    const c3 = await custodyFor("req.mnt", "AST", "FRCHR-00002", 1) ?? [];
     if (c1[0]) await as(c, U["req.it"], () => cus.acknowledge(cc, U["req.it"], c1[0]));
     if (c3[0]) await as(c, U["req.mnt"], () => cus.acknowledge(cc, U["req.mnt"], c3[0]));
     if (c2[0]) {
       await as(c, U["req.env"], () => cus.acknowledge(cc, U["req.env"], c2[0]));
       const ret = await as(c, U["req.env"], () => cus.returnCustody(cc, U["req.env"], c2[0], { condition: "good", reason: "انتهاء المهمة الميدانية" }));
-      await as(c, U["sk.riyadh"], () => rt.receiveReturn(cc, U["sk.riyadh"], ret.id, []));
+      await as(c, U["sk.assets"], () => rt.receiveReturn(cc, U["sk.assets"], ret.id, []));
     }
     // demo realism: give the seeded custody requests plausible approval / delivery durations (instant seeding reads as 0 h)
     await as(c, sys, () => c.query(`UPDATE material_request SET submitted_at = delivered_at - make_interval(hours => 8 + (abs(hashtext(mr_no)) % 28)),
@@ -126,8 +126,8 @@ export async function seedPhase4(databaseUrl = config.databaseUrl, log = console
     await as(c, sys, () => c.query("UPDATE custody SET issued_at = issued_at - make_interval(days => 3 + (abs(hashtext(custody_no)) % 40))"));
 
     // ---------------------------------------------------------------- clearances
-    await as(c, U["sk.riyadh"], () => cus.requestClearance(cc, U["sk.riyadh"], { employeeId: U["req.it"], reason: "transfer", notes: "انتقال إلى فرع الهيئة في حائل" }));
-    await as(c, U["sk.riyadh"], () => cus.requestClearance(cc, U["sk.riyadh"], { employeeId: U.irc3, reason: "end_of_contract" }));
+    await as(c, U["sk.assets"], () => cus.requestClearance(cc, U["sk.assets"], { employeeId: U["req.it"], reason: "transfer", notes: "انتقال إلى فرع الهيئة في حائل" }));
+    await as(c, U["sk.assets"], () => cus.requestClearance(cc, U["sk.assets"], { employeeId: U.irc3, reason: "end_of_contract" }));
 
     // ---------------------------------------------------------------- journals, provision, ERP outbox
     const jes = await as(c, U.fin, () => val.generateJournals(cc, U.fin));
@@ -155,14 +155,14 @@ export async function seedPhase4(databaseUrl = config.databaseUrl, log = console
       [hist.map((h) => h[0]), hist.map((h) => h[1]), hist.map((h) => h[2])]));
 
     // ---------------------------------------------------------------- report schedules
-    await as(c, U["wm.riyadh"], async () => {
+    await as(c, U["wm.cons"], async () => {
       const ins = (name: string, code: string, format: string, frequency: string, extra: any, recipients: string[]) =>
         c.query(`INSERT INTO report_schedule (name, report_code, params, format, lang, frequency, weekday, monthday, hour, recipient_ids, next_run_at)
                  VALUES ($1,$2,'{}',$3,'ar',$4,$5,$6,7,$7,$8)`, [name, code, format, frequency, extra.weekday ?? null, extra.monthday ?? null, recipients,
           nextRun({ frequency, weekday: extra.weekday, monthday: extra.monthday, hour: 7 })]);
-      await ins("بطاقة مؤشرات الأداء الأسبوعية", "kpi-scorecard", "pdf", "weekly", { weekday: 0 }, [U["wm.riyadh"], U["wm.north"], U.exec]);
+      await ins("بطاقة مؤشرات الأداء الأسبوعية", "kpi-scorecard", "pdf", "weekly", { weekday: 0 }, [U["wm.cons"], U["wm.assets"], U.exec]);
       await ins("تقرير التقييم الشهري للمالية", "valuation", "xlsx", "monthly", { monthday: 1 }, [U.fin]);
-      await ins("تقرير الصلاحية اليومي", "expiry", "xlsx", "daily", {}, [U["sk.riyadh"], U["wm.riyadh"]]);
+      await ins("تقرير الصلاحية اليومي", "expiry", "xlsx", "daily", {}, [U["sk.cleaning"], U["wm.cons"]]);
     });
 
     // ---------------------------------------------------------------- alerts → notifications → e-mail (logged without SMTP), outbox (stub without endpoints)

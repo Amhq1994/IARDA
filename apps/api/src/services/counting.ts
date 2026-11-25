@@ -184,7 +184,7 @@ export async function decideAdjustment(c: Tx, actorId: string, id: string, actio
   const adj = await one(c, "SELECT * FROM adjustment WHERE id = $1", [id]);
   if (!adj) throw E.notFound("adjustment");
   return decideDoc(c, actorId, "ADJ", id, action, comment, { ids: await countersOf(c, adj), rule: "SoD-3",
-    ar: "من شارك في الجرد لا يعتمد التسوية", en: "A counter cannot approve the resulting adjustment" });
+    ar: "من شارك في الجرد لا يعتمد فروقاته", en: "A counter cannot approve the resulting adjustment" });
 }
 
 /** SoD-3: the poster is neither the creator, an approver, nor a counter. */
@@ -192,7 +192,7 @@ export async function postAdjustment(c: Tx, actorId: string, id: string) {
   const adj = await lockDoc(c, "ADJ", id);
   if (adj.status !== "approved") throw E.state(adj.status, "post");
   const forbidden = new Set([adj.created_by, ...(await approversOfDoc(c, "ADJ", id)), ...(await countersOf(c, adj))]);
-  if (forbidden.has(actorId)) throw E.sod("SoD-3", "مُرحّل التسوية يجب أن يختلف عن منشئها ومعتمديها والقائمين بالجرد", "The poster must differ from the creator, approvers and counters");
+  if (forbidden.has(actorId)) throw E.sod("SoD-3", "مُرحّل الفروقات يجب أن يختلف عن منشئها ومعتمديها والقائمين بالجرد", "The poster must differ from the creator, approvers and counters");
   for (const l of await many(c, "SELECT * FROM adjustment_line WHERE adjustment_id = $1", [id])) {
     const ledgerId = await post(c, { docType: "ADJ", docId: id, docNo: adj.adj_no, docLineId: l.id, movement: Number(l.qty_delta) > 0 ? "ADJ_PLUS" : "ADJ_MINUS",
       itemId: l.item_id, locationId: l.location_id, lotId: l.lot_id, status: l.stock_status, qty: Number(l.qty_delta), unitCost: Number(l.unit_cost), notes: l.reason });

@@ -109,7 +109,7 @@ Status: **delivered, awaiting confirmation** before Phase 3 (transfers, returns,
 
 ### Material requests (14 requests)
 - **Closed:** 4, delivered with signatures.
-- **In progress:** 1 ready for delivery, 1 being picked (assigned to `ww.riyadh1`), and 1 approved by the delegate (`dm.mnt` on behalf of `dm.it`, who is on leave).
+- **In progress:** 1 ready for delivery, 1 being picked (assigned to `ww.cleaning1`), and 1 approved by the delegate (`dm.mnt` on behalf of `dm.it`, who is on leave).
 - **Pending:** 2 at levels 1 and 2, and 1 urgent with parallel approvers.
 - **Exceptions:** 1 overdue and escalated, 1 returned for revision, 1 rejected, and 2 drafts.
 
@@ -117,11 +117,11 @@ Status: **delivered, awaiting confirmation** before Phase 3 (transfers, returns,
 
 1. **`req.env` creates a request.** Open *Material requests → New*, add «قلم», enter a quantity, and submit. The form shows available stock and any warnings.
 2. **`dm.env` approves it.** Go to *Dashboard → Awaiting my approval → Approve*.
-3. **`sk.riyadh` starts fulfilment.** Open the request, click *Reserve stock* (the picks follow FEFO), then *Release pick list* and assign `ww.riyadh1`.
-4. **`ww.riyadh1` picks on a phone.** Open `/m` → *Picking*, scan or type the bin, then the item. A wrong bin or item is refused.
-5. **`sk.riyadh` delivers.** Click *Deliver with receiver signature*, draw the signature, and the delivery note opens ready to print.
+3. **`sk.cleaning` starts fulfilment.** Open the request, click *Reserve stock* (the picks follow FEFO), then *Release pick list* and assign `ww.cleaning1`.
+4. **`ww.cleaning1` picks on a phone.** Open `/m` → *Picking*, scan or type the bin, then the item. A wrong bin or item is refused.
+5. **`sk.cleaning` delivers.** Click *Deliver with receiver signature*, draw the signature, and the delivery note opens ready to print.
 6. **`irc1` handles an inspection.** Go to *Receiving → My committees → RCV-…-000003*, record the results, upload the PDF report, and sign. When `irc3` signs, the inspection completes.
-7. **`sk.riyadh` posts the GRN** for that receipt. The put-away tasks then appear in the mobile view, with suggested bins.
+7. **`sk.cleaning` posts the GRN** for that receipt. The put-away tasks then appear in the mobile view, with suggested bins.
 8. **`supplier.rowad` uses the supplier portal.** *Purchase orders* shows only this supplier's POs; submit an ASN for an open PO.
 9. **`dm.it` sets a delegation.** On the *Profile* page, add a delegation to another manager. New IT requests then route to the delegate.
 

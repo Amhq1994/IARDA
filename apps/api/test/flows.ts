@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { pool, login, lookups, uniq } from "./helpers.ts";
 
 const L = await lookups();
-const [mdo, wmN, proc, sk, irc1, irc2, ww] = await Promise.all(["mdo", "wm.north", "proc", "sk.riyadh", "irc1", "irc2", "ww.riyadh1"].map((u) => login(u)));
+const [mdo, wmN, proc, sk, irc1, irc2, ww] = await Promise.all(["mdo", "wm.assets", "proc", "sk.cleaning", "irc1", "irc2", "ww.cleaning1"].map((u) => login(u)));
 
 // 1×1 PNG signature (valid header, enough bytes)
 export const SIGNATURE = "data:image/png;base64," + Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), Buffer.alloc(400, 7)]).toString("base64");
@@ -19,7 +19,7 @@ export function multipart(fields: Record<string, string>, file: { name: string; 
 
 /** Creates an active item (MDO creates, WM approves). */
 export async function newItem(over: Record<string, unknown> = {}) {
-  const it = (await mdo.post("/api/items", { nameAr: `صنف مرحلة ثانية ${uniq()} ${uniq()}`, nameEn: `Phase2 item ${uniq()}`, groupId: L.group("OFDSK"),
+  const it = (await mdo.post("/api/items", { nameAr: `صنف مرحلة ثانية ${uniq()} ${uniq()}`, nameEn: `Phase2 item ${uniq()}`, groupId: L.group("CLTOL"),
     itemType: "consumable", baseUomId: L.uom("EA"), unitWeightKg: 0.2, unitVolumeM3: 0.0005, standardCost: 10, acknowledgeDuplicates: true, ...over })).body;
   assert.equal((await mdo.post(`/api/items/${it.id}/submit`)).status, 200);
   assert.equal((await wmN.post(`/api/items/${it.id}/approve`)).status, 200);
@@ -29,7 +29,7 @@ export async function newItem(over: Record<string, unknown> = {}) {
 /** Runs the full inbound flow through the API and returns the receipt. */
 export async function receive(itemId: string, qty: number, opts: { price?: number; lot?: string; expiry?: string; serials?: string[]; accept?: number; putaway?: boolean } = {}) {
   const po = (await proc.post("/api/purchase-orders", { supplierId: (await pool.query("SELECT id FROM supplier WHERE code = 'SUP-001'")).rows[0].id,
-    warehouseId: L.wh("RYD"), etimadRef: `ETM-T-${uniq()}`, lines: [{ itemId, qty, unitPrice: opts.price ?? 10 }] })).body;
+    warehouseId: L.wh("CLN"), etimadRef: `ETM-T-${uniq()}`, lines: [{ itemId, qty, unitPrice: opts.price ?? 10 }] })).body;
   const r = (await sk.post("/api/receipts", { poId: po.id })).body;
   const det = (await sk.get(`/api/receipts/${r.id}`)).body;
   const line = det.lines[0];

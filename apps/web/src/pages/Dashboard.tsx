@@ -59,7 +59,6 @@ export function DashboardPage() {
         <section className="grid grid--kpi section">
           <Kpi icon="slides" label={t("inv.inTransit")} value={d.control.in_transit} to="/transfers" />
           <Kpi icon="table" label={t("inv.counts")} value={d.control.counts_open} to="/counts" />
-          <Kpi icon="sheet" label={t("inv.adjustments")} value={d.control.adjustments_open} to="/adjustments" tone={d.control.adjustments_open ? "gold" : undefined} />
           <Kpi icon="alert" label={t("inv.quarantineStock")} value={d.control.quarantine_lines} to="/returns?tab=quarantine" />
         </section>
       )}

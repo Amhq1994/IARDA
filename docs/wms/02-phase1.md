@@ -50,10 +50,10 @@ Never set `VITE_DEMO` for a production build; it shows the demo accounts on the 
 | Role | Username | Role | Username |
 |---|---|---|---|
 | System Admin | `admin` | Requester | `req.env`, `req.mnt`, `req.it` |
-| Warehouse Manager (Riyadh) | `wm.riyadh` | Department Manager | `dm.env`, `dm.mnt`, `dm.it` |
-| Warehouse Manager (North + Spare) | `wm.north` | Inspection Committee | `irc1`, `irc2`, `irc3` |
-| Storekeeper | `sk.riyadh`, `sk.north`, `sk.spare` | Count & Disposal Committee | `cdc1`, `cdc2` |
-| Warehouse Worker | `ww.riyadh1`, `ww.riyadh2`, `ww.north` | Procurement | `proc` |
+| Warehouse Manager (Riyadh) | `wm.cons` | Department Manager | `dm.env`, `dm.mnt`, `dm.it` |
+| Warehouse Manager (North + Spare) | `wm.assets` | Inspection Committee | `irc1`, `irc2`, `irc3` |
+| Storekeeper | `sk.cleaning`, `sk.hosp`, `sk.spare` | Count & Disposal Committee | `cdc1`, `cdc2` |
+| Warehouse Worker | `ww.cleaning1`, `ww.cleaning2`, `ww.hosp` | Procurement | `proc` |
 | Master Data Officer | `mdo` | Finance | `fin` |
 | Inventory Planner | `planner` | Internal Auditor | `auditor` |
 | Supplier portal | `supplier.rowad` | | |
@@ -62,10 +62,10 @@ Never set `VITE_DEMO` for a production build; it shows the demo accounts on the 
 
 1. **`mdo` creates an item.** Open *Items → New item* and type `ورق تصوير A4`. The similar-items panel flags OFPAP-00001 as a likely duplicate, and *Create* stays disabled until you acknowledge the duplicates. Finish the item, then click *Submit for approval*.
 2. **`mdo` cannot approve it.** This account has no approve button at all.
-3. **`wm.riyadh` approves it.** If `wm.riyadh` had requested the item, approval would be refused under SoD-6.
+3. **`wm.cons` approves it.** If `wm.cons` had requested the item, approval would be refused under SoD-6.
 4. **`auditor` reviews the trail.** Open *Audit trail* and click *Verify integrity*. The item's *History* tab shows every step, with old and new values and who acted.
-5. **`sk.riyadh` sees only Riyadh.** *Warehouses* lists just the Riyadh warehouse. Opening the northern warehouse directly returns *out of scope*.
-6. **`wm.north` generates bins.** Open a zone in the northern warehouse and generate bins. Then browse the tree and block a bin, giving a reason.
+5. **`sk.cleaning` sees only Riyadh.** *Warehouses* lists just the Riyadh warehouse. Opening the northern warehouse directly returns *out of scope*.
+6. **`wm.assets` generates bins.** Open a zone in the northern warehouse and generate bins. Then browse the tree and block a bin, giving a reason.
 7. **`admin` edits the matrix.** Try granting `receipt.execute` to the Auditor role. The change is refused under segregation of duties.
 
 ## Tests

@@ -28,7 +28,7 @@ import { StockPage } from "./pages/Stock";
 import { MobileHome, MobilePutawayList, MobilePutawayTask, MobilePickLists, MobilePickList, MobileLookup, MobileCountList, MobileCount, MobileMove } from "./pages/Mobile";
 import { PlanningPage, PrsPage, PrDetailPage, ValuationPage, JournalDetailPage, ProvisionDetailPage, CustodyPage, ClearancesPage, ClearanceDetailPage } from "./pages/Planning";
 import { KpisPage, ReportsPage, IntegrationsPage, LabelsPage, PortalPage } from "./pages/Insights";
-import { ApprovalsPage, TransfersPage, TransferDetailPage, ReturnsPage, ReturnDetailPage, CountsPage, CountDetailPage, AdjustmentsPage, AdjustmentDetailPage, DisposalsPage, DisposalDetailPage } from "./pages/Control";
+import { ApprovalsPage, TransfersPage, TransferDetailPage, ReturnsPage, ReturnDetailPage, CountsPage, CountDetailPage, AdjustmentRedirect, DisposalsPage, DisposalDetailPage } from "./pages/Control";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e: any) => n < 1 && !(e?.status >= 400 && e?.status < 500), refetchOnWindowFocus: false } } });
 
@@ -100,8 +100,8 @@ const router = makeRouter([
       { path: "returns/:id", element: <ReturnDetailPage /> },
       { path: "counts", element: <Guard perms={["count.plan", "count.execute", "count.review", "audit.read"]}><CountsPage /></Guard> },
       { path: "counts/:id", element: <CountDetailPage /> },
-      { path: "adjustments", element: <Guard perms={["adjustment.request", "adjustment.approve", "count.review", "valuation.manage", "audit.read"]}><AdjustmentsPage /></Guard> },
-      { path: "adjustments/:id", element: <AdjustmentDetailPage /> },
+      { path: "adjustments", element: <Navigate to="/counts" replace /> },
+      { path: "adjustments/:id", element: <AdjustmentRedirect /> },
       { path: "disposals", element: <Guard perms={["disposal.recommend", "disposal.approve", "adjustment.request", "audit.read"]}><DisposalsPage /></Guard> },
       { path: "disposals/:id", element: <DisposalDetailPage /> },
       { path: "planning", element: <Guard perms={["planning.manage", "pr.create", "pr.approve", "valuation.manage", "audit.read"]}><PlanningPage /></Guard> },

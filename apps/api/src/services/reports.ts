@@ -104,7 +104,7 @@ export const REPORTS: ReportDef[] = [
     },
   },
   {
-    code: "count-variance", title: L("تقرير فروقات الجرد", "Count variance report"), description: L("الفروقات وقيمتها والتسوية الناتجة", "Variances, values and resulting adjustment"),
+    code: "count-variance", title: L("تقرير فروقات الجرد", "Count variance report"), description: L("الفروقات وقيمتها واعتمادها", "Variances, values and resulting adjustment"),
     perms: ["count.review", "adjustment.approve", "audit.read"], params: ["planId"],
     async build(c, p) {
       const pl = await one(c, `SELECT cp.*, w.code AS wh, a.adj_no, a.status AS adj_status FROM count_plan cp JOIN warehouse w ON w.id = cp.warehouse_id
@@ -125,8 +125,8 @@ export const REPORTS: ReportDef[] = [
             col("c1", "العد الأول", "1st count", { sum: false }), col("c2", "إعادة العد", "Recount", { sum: false }), col("var", "الفرق", "Variance"), col("val", "القيمة", "Value", { format: "currency" })],
           rows: v.map((r) => ({ loc: r.full_code, code: r.item_code, name: name(r), book: num(r.book), c1: num(r.qty_count1), c2: r.qty_count2 == null ? "—" : num(r.qty_count2),
             var: num(r.variance_qty), val: num(r.variance_value) })) },
-        { type: "text", title: L("التسوية", "Adjustment"), icon: "report", paragraphs: [pl.adj_no
-          ? L(`نتج عن الجرد طلب التسوية ${pl.adj_no} (الحالة: ${pl.adj_status}) ويُعتمد وفق مصفوفة الصلاحيات مع فصل المهام.`, `The count raised adjustment ${pl.adj_no} (status: ${pl.adj_status}), approved under the DoA with segregation of duties.`)
+        { type: "text", title: L("اعتماد الفروقات", "Variance approval"), icon: "report", paragraphs: [pl.adj_no
+          ? L(`نتج عن الجرد مستند الفروقات ${pl.adj_no} (الحالة: ${pl.adj_status}) ويُعتمد وفق مصفوفة الصلاحيات مع فصل المهام.`, `The count raised adjustment ${pl.adj_no} (status: ${pl.adj_status}), approved under the DoA with segregation of duties.`)
           : L("لم ينتج عن الجرد أي فروقات.", "The count produced no variances.")] }] };
     },
   },

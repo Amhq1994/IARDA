@@ -8,7 +8,7 @@ const L = await lookups();
 
 let mdo: Client, wmN: Client, wmR: Client, proc: Client, sk: Client, irc1: Client, irc2: Client, irc3: Client, ww: Client;
 before(async () => {
-  [mdo, wmN, wmR, proc, sk, irc1, irc2, irc3, ww] = await Promise.all(["mdo", "wm.north", "wm.riyadh", "proc", "sk.riyadh", "irc1", "irc2", "irc3", "ww.riyadh1"].map((u) => login(u)));
+  [mdo, wmN, wmR, proc, sk, irc1, irc2, irc3, ww] = await Promise.all(["mdo", "wm.assets", "wm.cons", "proc", "sk.cleaning", "irc1", "irc2", "irc3", "ww.cleaning1"].map((u) => login(u)));
 });
 
 
@@ -28,11 +28,11 @@ describe("inbound: receiving, inspection, GRN, put-away, 3-way match", () => {
   test("SoD-4: the receiver cannot sit on the inspection committee", async () => {
     const it = await newItem();
     const po = (await proc.post("/api/purchase-orders", { supplierId: (await pool.query("SELECT id FROM supplier WHERE code = 'SUP-002'")).rows[0].id,
-      warehouseId: L.wh("RYD"), lines: [{ itemId: it.id, qty: 5, unitPrice: 3 }] })).body;
+      warehouseId: L.wh("CLN"), lines: [{ itemId: it.id, qty: 5, unitPrice: 3 }] })).body;
     const r = (await sk.post("/api/receipts", { poId: po.id })).body;
     const line = (await sk.get(`/api/receipts/${r.id}`)).body.lines[0];
     await sk.post(`/api/receipts/${r.id}/quantity-check`, { lines: [{ lineId: line.id, qtyReceived: 5 }] });
-    const bad = await sk.post(`/api/receipts/${r.id}/inspection`, { memberIds: [await id("sk.riyadh"), await id("irc1")], chairId: await id("irc1") });
+    const bad = await sk.post(`/api/receipts/${r.id}/inspection`, { memberIds: [await id("sk.cleaning"), await id("irc1")], chairId: await id("irc1") });
     assert.equal(bad.status, 409);
     assert.equal(bad.body.error.code, "segregation_of_duties");
     const notIrc = await sk.post(`/api/receipts/${r.id}/inspection`, { memberIds: [await id("irc1"), await id("mdo")], chairId: await id("irc1") });
@@ -42,7 +42,7 @@ describe("inbound: receiving, inspection, GRN, put-away, 3-way match", () => {
   test("inspection needs the report before signing; over-receipt and missing batch are refused", async () => {
     const it = await newItem({ trackBatch: true, trackExpiry: true, shelfLifeDays: 365 });
     const po = (await proc.post("/api/purchase-orders", { supplierId: (await pool.query("SELECT id FROM supplier WHERE code = 'SUP-002'")).rows[0].id,
-      warehouseId: L.wh("RYD"), lines: [{ itemId: it.id, qty: 10, unitPrice: 3 }] })).body;
+      warehouseId: L.wh("CLN"), lines: [{ itemId: it.id, qty: 10, unitPrice: 3 }] })).body;
     const r = (await sk.post("/api/receipts", { poId: po.id })).body;
     const line = (await sk.get(`/api/receipts/${r.id}`)).body.lines[0];
     assert.equal((await sk.post(`/api/receipts/${r.id}/quantity-check`, { lines: [{ lineId: line.id, qtyReceived: 11, lotNo: "X1", expiryDate: "2030-01-01" }] })).body.error.code, "over_receipt");
@@ -63,7 +63,7 @@ describe("inbound: receiving, inspection, GRN, put-away, 3-way match", () => {
     const other = (await sk.get(`/api/putaway-tasks/${t.id}/suggestions`)).body.data.find((s: any) => s.fullCode !== t.suggested_code);
     const r1 = await ww.post(`/api/putaway-tasks/${t.id}/complete`, { scannedLocation: other.fullCode });
     assert.equal(r1.body.error.code, "override_reason_required");
-    const blocked = (await pool.query("SELECT full_code FROM location WHERE is_blocked AND warehouse_id = $1 AND level = 'bin' LIMIT 1", [L.wh("RYD")])).rows[0];
+    const blocked = (await pool.query("SELECT full_code FROM location WHERE is_blocked AND warehouse_id = $1 AND level = 'bin' LIMIT 1", [L.wh("CLN")])).rows[0];
     const r2 = await ww.post(`/api/putaway-tasks/${t.id}/complete`, { scannedLocation: blocked.full_code, overrideReason: "test" });
     assert.equal(r2.body.error.code, "bin_not_suitable");
     assert.equal((await ww.post(`/api/putaway-tasks/${t.id}/complete`, { scannedLocation: other.fullCode, overrideReason: "الخانة المقترحة مشغولة فعلياً" })).status, 200);
@@ -96,7 +96,7 @@ describe("inbound: receiving, inspection, GRN, put-away, 3-way match", () => {
 
 describe("material requests: validation, DoA approvals, SoD, delegation, fulfilment", () => {
   const draft = async (c: Client, lines: { itemId: string; qty: number }[], over: Record<string, unknown> = {}) =>
-    (await c.post("/api/requests", { requestType: "issue", warehouseId: L.wh("RYD"), purpose: "اختبار", lines, ...over })).body;
+    (await c.post("/api/requests", { requestType: "issue", warehouseId: L.wh("CLN"), purpose: "اختبار", lines, ...over })).body;
 
   test("auto-validation blocks out-of-stock items and warns on partial stock", async () => {
     const req = await login("req.env");
@@ -186,7 +186,7 @@ describe("material requests: validation, DoA approvals, SoD, delegation, fulfilm
     await req.post(`/api/requests/${m.id}/submit`);
     await dm.post(`/api/requests/${m.id}/decision`, { action: "approve" });
     assert.equal((await sk.post(`/api/requests/${m.id}/reserve`)).status, 200);
-    const pl = (await sk.post(`/api/requests/${m.id}/pick-list`, { assignTo: await id("ww.riyadh1") })).body;
+    const pl = (await sk.post(`/api/requests/${m.id}/pick-list`, { assignTo: await id("ww.cleaning1") })).body;
     const tasks = (await ww.get(`/api/pick-lists/${pl.id}`)).body.tasks;
     // FEFO: the whole early-expiry lot (4) is reserved before 1 from the later lot; tasks follow the walking path
     const byLot = Object.fromEntries(tasks.map((t: any) => [t.lot_no, t.qty]));
@@ -194,9 +194,9 @@ describe("material requests: validation, DoA approvals, SoD, delegation, fulfilm
     assert.equal(Object.values(byLot).reduce((a: any, b: any) => a + b, 0), 5);
     tasks.sort((x: any, y: any) => (x.lot_no === early ? -1 : 1));
     // wrong bin / wrong item are refused
-    const wrongBin = await ww.post(`/api/pick-tasks/${tasks[0].id}/confirm`, { location: "RYD-STR-A08-R06-B04", item: it.item_code, lot: early, qty: 4 });
+    const wrongBin = await ww.post(`/api/pick-tasks/${tasks[0].id}/confirm`, { location: "CLN-STR-A08-R06-B04", item: it.item_code, lot: early, qty: 4 });
     assert.equal(wrongBin.body.error.code, "wrong_location");
-    const wrongItem = await ww.post(`/api/pick-tasks/${tasks[0].id}/confirm`, { location: tasks[0].full_code, item: "OFPAP-00001", lot: early, qty: 4 });
+    const wrongItem = await ww.post(`/api/pick-tasks/${tasks[0].id}/confirm`, { location: tasks[0].full_code, item: "CLPAP-00002", lot: early, qty: 4 });
     assert.equal(wrongItem.body.error.code, "wrong_item");
     assert.equal((await ww.post(`/api/pick-tasks/${tasks[0].id}/confirm`, { location: tasks[0].full_code, item: it.item_code, lot: early, qty: 4 })).status, 200);
     // short pick on the second task (only 0.5 of 1 found → short)
@@ -283,7 +283,7 @@ describe("material requests: validation, DoA approvals, SoD, delegation, fulfilm
     await receive(it.id, 3);
     const { withTx } = await import("../src/db/pool.ts");
     const bin = (await pool.query("SELECT location_id FROM stock_balance WHERE item_id = $1 AND qty_on_hand > 0", [it.id])).rows[0].location_id;
-    await assert.rejects(withTx({ userId: await id("sk.riyadh") }, (c) =>
+    await assert.rejects(withTx({ userId: await id("sk.cleaning") }, (c) =>
       c.query("SELECT wms_post('TEST', NULL, 'T', NULL, 'GI', $1, $2, NULL, 'available', -4)", [it.id, bin])), /insufficient stock/);
   });
 });

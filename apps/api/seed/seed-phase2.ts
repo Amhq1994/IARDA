@@ -188,60 +188,60 @@ export async function seedPhase2(databaseUrl = config.databaseUrl, log = console
     });
 
     // 1) fully received, put away and invoiced (3-way matched)
-    const po1 = await mkPo("SUP-001", "RYD", "ETM-1448-004512", [["OFPAP-00001", 120, 17.5], ["OFWRT-00001", 40, 11.5], ["OFDSK-00002", 60]], -12);
-    const r1 = await as(c, U["sk.riyadh"], () => inbound.arrive(c as any, U["sk.riyadh"], { poId: po1.id, supplierDeliveryRef: "DN-88421" }));
+    const po1 = await mkPo("SUP-005", "CLN", "ETM-1448-004512", [["CLTOL-00001", 120, 17.5], ["CLPAP-00002", 400, 1.4], ["CLTOL-00005", 60]], -12);
+    const r1 = await as(c, U["sk.cleaning"], () => inbound.arrive(c as any, U["sk.cleaning"], { poId: po1.id, supplierDeliveryRef: "DN-88421" }));
     const r1Lines = await q("SELECT id, qty_expected FROM receipt_line WHERE receipt_id = $1", [r1.id]);
-    await as(c, U["sk.riyadh"], () => inbound.quantityCheck(c as any, U["sk.riyadh"], r1.id, r1Lines.map((l) => ({ lineId: l.id, qtyReceived: Number(l.qty_expected) }))));
-    await as(c, U["sk.riyadh"], () => inbound.startInspection(c as any, U["sk.riyadh"], r1.id, [U.irc1, U.irc2], U.irc1));
+    await as(c, U["sk.cleaning"], () => inbound.quantityCheck(c as any, U["sk.cleaning"], r1.id, r1Lines.map((l) => ({ lineId: l.id, qtyReceived: Number(l.qty_expected) }))));
+    await as(c, U["sk.cleaning"], () => inbound.startInspection(c as any, U["sk.cleaning"], r1.id, [U.irc1, U.irc2], U.irc1));
     await as(c, U.irc1, async () => { await attachReport(c, r1.id); await inbound.recordInspection(c as any, U.irc1, r1.id, r1Lines.map((l) => ({ lineId: l.id, qtyAccepted: Number(l.qty_expected) }))); });
     await as(c, U.irc1, () => inbound.signInspection(c as any, U.irc1, r1.id, "agree"));
     await as(c, U.irc2, () => inbound.signInspection(c as any, U.irc2, r1.id, "agree"));
-    await as(c, U["sk.riyadh"], () => inbound.postGrn(c as any, U["sk.riyadh"], r1.id));
+    await as(c, U["sk.cleaning"], () => inbound.postGrn(c as any, U["sk.cleaning"], r1.id));
     for (const t of await q("SELECT id, suggested_location_id FROM putaway_task WHERE receipt_id = $1", [r1.id])) {
       const code = (await q("SELECT full_code FROM location WHERE id = $1", [t.suggested_location_id]))[0].full_code;
-      await as(c, U["ww.riyadh1"], () => inbound.completePutaway(c as any, U["ww.riyadh1"], t.id, code));
+      await as(c, U["ww.cleaning1"], () => inbound.completePutaway(c as any, U["ww.cleaning1"], t.id, code));
     }
     const pl1 = await q("SELECT id, qty_received, unit_price FROM po_line WHERE po_id = $1 ORDER BY line_no", [po1.id]);
     await as(c, U.fin, () => inbound.createInvoice(c as any, U.fin, { poId: po1.id, invoiceNo: "INV-55120", invoiceDate: days(-2),
       lines: pl1.map((l) => ({ poLineId: l.id, qty: Number(l.qty_received), unitPrice: Number(l.unit_price) })) }));
 
-    // 2) GRN posted, put-away pending (mobile demo) — veterinary batch items with expiry, partly rejected
-    const po2 = await mkPo("SUP-008", "NTH", "ETM-1448-004633", [["VTMED-00001", 30], ["VTMED-00002", 25], ["VTSUP-00001", 20]], -3);
-    const r2 = await as(c, U["sk.north"], () => inbound.arrive(c as any, U["sk.north"], { poId: po2.id }));
+    // 2) GRN posted, put-away pending (mobile demo) — hospitality batch items with expiry, partly rejected
+    const po2 = await mkPo("SUP-006", "HSP", "ETM-1448-004633", [["HPCOF-00001", 30], ["HPCOF-00005", 25], ["HPSNK-00001", 20]], -3);
+    const r2 = await as(c, U["sk.hosp"], () => inbound.arrive(c as any, U["sk.hosp"], { poId: po2.id }));
     const r2Lines = await q("SELECT rl.id, rl.qty_expected, i.item_code FROM receipt_line rl JOIN item i ON i.id = rl.item_id WHERE receipt_id = $1", [r2.id]);
-    await as(c, U["sk.north"], () => inbound.quantityCheck(c as any, U["sk.north"], r2.id, r2Lines.map((l, k) => ({
-      lineId: l.id, qtyReceived: Number(l.qty_expected), qtyDamaged: k === 1 ? 2 : 0, lotNo: `VB-${2611 + k}`, expiryDate: days(420 + k * 30), mfgDate: days(-30) }))));
-    await as(c, U["sk.north"], () => inbound.startInspection(c as any, U["sk.north"], r2.id, [U.irc2, U.irc3], U.irc2));
+    await as(c, U["sk.hosp"], () => inbound.quantityCheck(c as any, U["sk.hosp"], r2.id, r2Lines.map((l, k) => ({
+      lineId: l.id, qtyReceived: Number(l.qty_expected), qtyDamaged: k === 1 ? 2 : 0, lotNo: `HB-${2611 + k}`, expiryDate: days(420 + k * 30), mfgDate: days(-30) }))));
+    await as(c, U["sk.hosp"], () => inbound.startInspection(c as any, U["sk.hosp"], r2.id, [U.irc2, U.irc3], U.irc2));
     await as(c, U.irc2, async () => { await attachReport(c, r2.id); await inbound.recordInspection(c as any, U.irc2, r2.id, r2Lines.map((l, k) => ({
       lineId: l.id, qtyAccepted: Number(l.qty_expected) - (k === 1 ? 2 : 0), rejectReason: k === 1 ? "عبوات تالفة أثناء النقل" : null }))); });
     await as(c, U.irc2, () => inbound.signInspection(c as any, U.irc2, r2.id, "agree"));
     await as(c, U.irc3, () => inbound.signInspection(c as any, U.irc3, r2.id, "agree"));
-    await as(c, U["sk.north"], () => inbound.postGrn(c as any, U["sk.north"], r2.id));
+    await as(c, U["sk.hosp"], () => inbound.postGrn(c as any, U["sk.hosp"], r2.id));
 
     // 3) in technical inspection (awaiting committee)
-    const po3 = await mkPo("SUP-004", "RYD", "ETM-1448-004701", [["SFPPE-00002", 40], ["SFFIR-00001", 15], ["SFPPE-00006", 30]], 0);
-    const r3 = await as(c, U["sk.riyadh"], () => inbound.arrive(c as any, U["sk.riyadh"], { poId: po3.id, supplierDeliveryRef: "SF-2231" }));
+    const po3 = await mkPo("SUP-004", "CLN", "ETM-1448-004701", [["SFPPE-00002", 40], ["SFFIR-00001", 15], ["SFPPE-00006", 30]], 0);
+    const r3 = await as(c, U["sk.cleaning"], () => inbound.arrive(c as any, U["sk.cleaning"], { poId: po3.id, supplierDeliveryRef: "SF-2231" }));
     const r3Lines = await q("SELECT rl.id, rl.qty_expected, i.item_code, i.track_serial, i.track_batch, i.track_expiry FROM receipt_line rl JOIN item i ON i.id = rl.item_id WHERE receipt_id = $1", [r3.id]);
-    await as(c, U["sk.riyadh"], () => inbound.quantityCheck(c as any, U["sk.riyadh"], r3.id, r3Lines.map((l) => ({
+    await as(c, U["sk.cleaning"], () => inbound.quantityCheck(c as any, U["sk.cleaning"], r3.id, r3Lines.map((l) => ({
       lineId: l.id, qtyReceived: Number(l.qty_expected),
       serialNos: l.track_serial ? Array.from({ length: Number(l.qty_expected) }, (_, k) => `FX-${70100 + k}`) : undefined,
       lotNo: l.track_batch ? "N95-2611" : undefined, expiryDate: l.track_expiry ? days(700) : undefined }))));
-    await as(c, U["sk.riyadh"], () => inbound.startInspection(c as any, U["sk.riyadh"], r3.id, [U.irc1, U.irc3], U.irc1));
+    await as(c, U["sk.cleaning"], () => inbound.startInspection(c as any, U["sk.cleaning"], r3.id, [U.irc1, U.irc3], U.irc1));
 
     // 4) arrived at the dock (quantity check pending), from a supplier-portal ASN
-    const po4 = await mkPo("SUP-001", "RYD", "ETM-1448-004755", [["OFFIL-00001", 80], ["OFWRT-00002", 50], ["OFPAP-00005", 30]], 1);
+    const po4 = await mkPo("SUP-001", "CLN", "ETM-1448-004755", [["CLTOL-00002", 80], ["CLPAP-00004", 50], ["CLPAP-00001", 30]], 1);
     const pl4 = await q("SELECT id, qty_ordered FROM po_line WHERE po_id = $1 ORDER BY line_no", [po4.id]);
     const asn4 = await as(c, U["supplier.rowad"], () => inbound.createAsn(c as any, U["supplier.rowad"], { poId: po4.id, expectedAt: new Date().toISOString(),
       vehicleNo: "ر ح ط 4821", driverName: "سالم العتيبي", lines: pl4.map((l) => ({ poLineId: l.id, qty: Number(l.qty_ordered) })) }, S["SUP-001"]));
-    await as(c, U["sk.riyadh"], () => inbound.arrive(c as any, U["sk.riyadh"], { asnId: asn4.id }));
+    await as(c, U["sk.cleaning"], () => inbound.arrive(c as any, U["sk.cleaning"], { asnId: asn4.id }));
 
     // 5) open POs with an ASN expected later (supplier portal) and one without ASN
-    const po5 = await mkPo("SUP-001", "RYD", "ETM-1448-004790", [["OFPAP-00002", 40], ["OFDSK-00001", 25]], 4);
+    const po5 = await mkPo("SUP-001", "CLN", "ETM-1448-004790", [["CLPAP-00003", 40], ["CLTOL-00003", 25]], 4);
     const pl5 = await q("SELECT id, qty_ordered FROM po_line WHERE po_id = $1 ORDER BY line_no", [po5.id]);
     await as(c, U["supplier.rowad"], () => inbound.createAsn(c as any, U["supplier.rowad"], { poId: po5.id, expectedAt: new Date(Date.now() + 3 * 86400_000).toISOString(),
       vehicleNo: "ب د ن 1177", lines: pl5.map((l) => ({ poLineId: l.id, qty: Number(l.qty_ordered) })) }, S["SUP-001"]));
-    await mkPo("SUP-006", "NTH", "ETM-1448-004802", [["FDFED-00001", 200], ["FDFED-00003", 120]], 6);
-    await mkPo("SUP-003", "SPR", "ETM-1448-004815", [["VHENG-00001", 24], ["VHBRK-00001", 10], ["VHTYR-00001", 8]], 9);
+    await mkPo("SUP-006", "HSP", "ETM-1448-004802", [["HPBEV-00001", 200], ["HPDSP-00002", 50]], 6);
+    await mkPo("SUP-003", "SPR", "ETM-1448-004815", [["MPGEN-00001", 24], ["MPHVC-00002", 10], ["MPMEC-00001", 30]], 9);
     log("seed: inbound — 7 POs, 2 ASNs, 4 receipts (put away & invoiced / put-away pending / in inspection / at dock)");
 
     // ---------------------------------------------------------------- material requests in every state
@@ -284,10 +284,10 @@ export async function seedPhase2(databaseUrl = config.databaseUrl, log = console
     let n = 0;
     // closed (fully delivered) — several, for history and KPIs
     for (const [user, wh, wants, keeper, picker] of [
-      ["req.env", "NTH", [["SFPPE-00003", 6], ["CPRNG-00005", 2], ["CLPAP-00004", 4]], "sk.north", "ww.north"],
-      ["req.mnt", "SPR", [["VHENG-00001", 2], ["FLOIL-00001", 8]], "sk.spare", "sk.spare"],
-      ["req.it", "RYD", [["ITCMP-00005", 3], ["ITPRN-00004", 4]], "sk.riyadh", "ww.riyadh2"],
-      ["req.env", "RYD", [["OFPAP-00001", 10], ["OFWRT-00001", 5]], "sk.riyadh", "ww.riyadh1"],
+      ["req.env", "HSP", [["HPCOF-00005", 6], ["HPSNK-00001", 4], ["HPDSP-00001", 3]], "sk.hosp", "ww.hosp"],
+      ["req.mnt", "SPR", [["MPGEN-00001", 2], ["MPHVC-00005", 8]], "sk.spare", "ww.assets"],
+      ["req.it", "AST", [["ITCMP-00005", 3], ["ITPRN-00004", 4]], "sk.assets", "ww.assets"],
+      ["req.env", "CLN", [["CLPAP-00002", 10], ["CLTOL-00004", 5]], "sk.cleaning", "ww.cleaning1"],
     ] as [string, string, [string, number][], string, string][]) {
       const m = await mkMr(user, wh, "issue", wants, { purpose: "احتياج تشغيلي شهري" });
       await submit(user, m.id);
@@ -304,39 +304,44 @@ export async function seedPhase2(databaseUrl = config.databaseUrl, log = console
       n++;
     }
     // ready for delivery
-    const mReady = await mkMr("req.env", "RYD", "issue", [["CLCHM-00002", 6], ["CLTOL-00004", 10]], { purpose: "تجهيز مخيم الرصد الميداني" });
+    const mReady = await mkMr("req.env", "CLN", "issue", [["CLCHM-00002", 6], ["CLTOL-00004", 10]], { purpose: "تعقيم مقر الإدارة" });
     await submit("req.env", mReady.id); await decide("dm.env", mReady.id, "approve");
-    await fulfilTo(mReady.id, "sk.riyadh", "ww.riyadh1", "ready");
+    await fulfilTo(mReady.id, "sk.cleaning", "ww.cleaning1", "ready");
     // picking (assigned to a worker — mobile demo)
-    const mPick = await mkMr("req.mnt", "RYD", "work_order", [["ELLMP-00001", 20], ["ELACC-00005", 6], ["ELCBL-00001", 2]], { workOrderRef: "WO-1448-0791", purpose: "صيانة إنارة مبنى الإدارة" });
+    const mPick = await mkMr("req.mnt", "SPR", "work_order", [["ELLMP-00001", 20], ["ELACC-00005", 6], ["ELCBL-00001", 2]], { workOrderRef: "WO-1448-0791", purpose: "صيانة إنارة مبنى الإدارة" });
     await submit("req.mnt", mPick.id); await decide("dm.mnt", mPick.id, "approve");
-    await fulfilTo(mPick.id, "sk.riyadh", "ww.riyadh1", "picking");
+    for (let g = 0; g < 2; g++) {   // spare parts are a critical category → warehouse manager approves too
+      const t = await q("SELECT assignee_id FROM approval_task WHERE doc_id = $1 AND status = 'pending' LIMIT 1", [mPick.id]);
+      if (!t.length) break;
+      await decide(Object.entries(U).find(([, v]) => v === t[0].assignee_id)![0], mPick.id, "approve");
+    }
+    await fulfilTo(mPick.id, "sk.spare", "ww.assets", "picking");
     // approved, awaiting reservation — IT request approved by the delegate (dm.mnt on behalf of dm.it)
-    const mAppr = await mkMr("req.it", "RYD", "issue", [["ITCMP-00004", 4], ["ITCMP-00005", 4]], { purpose: "تجهيز موظفين جدد" });
+    const mAppr = await mkMr("req.it", "AST", "issue", [["ITCMP-00004", 4], ["ITCMP-00005", 4]], { purpose: "تجهيز موظفين جدد" });
     await submit("req.it", mAppr.id); await decide("dm.mnt", mAppr.id, "approve", "معتمد بالنيابة عن مدير تقنية المعلومات");
     // pending level 1 (department manager)
-    const mL1 = await mkMr("req.env", "NTH", "issue", [["CPRNG-00005", 3], ["CPFLD-00002", 4]], { purpose: "جولات رقابية — الربع الرابع", neededBy: days(5) });
+    const mL1 = await mkMr("req.env", "HSP", "issue", [["HPBEV-00001", 3], ["HPDSP-00002", 4]], { purpose: "ضيافة اجتماعات اللجان — الربع الرابع", neededBy: days(5) });
     await submit("req.env", mL1.id);
     // pending level 2 (critical category → warehouse manager), after department approval
-    const mL2 = await mkMr("req.mnt", "SPR", "work_order", [["VHBRK-00001", 2], ["VHTYR-00003", 2]], { workOrderRef: "WO-1448-0802", purpose: "صيانة دورية لمركبات الدوريات" });
+    const mL2 = await mkMr("req.mnt", "SPR", "work_order", [["MPHVC-00002", 2], ["MPPLM-00003", 2]], { workOrderRef: "WO-1448-0802", purpose: "صيانة دورية لمكيفات ومضخات مبنى الإدارة" });
     await submit("req.mnt", mL2.id); await decide("dm.mnt", mL2.id, "approve");
     // urgent (first of DM / WM to act)
-    const mUrg = await mkMr("req.env", "NTH", "urgent", [["SFFIR-00005", 4], ["SFFAK-00001", 2]],
+    const mUrg = await mkMr("req.env", "AST", "urgent", [["SFFIR-00005", 4], ["SFFAK-00001", 2]],
       { justification: "حريق أعشاب قرب منطقة السناف ويتطلب تجهيز فرق الاستجابة فوراً", purpose: "استجابة طارئة" });
     await submit("req.env", mUrg.id);
     // overdue (SLA breached) → escalation
-    const mLate = await mkMr("req.it", "RYD", "issue", [["ITNET-00002", 1], ["OFDSK-00005", 2]], { purpose: "تمديد شبكة مكتب الإدارة" });
+    const mLate = await mkMr("req.it", "AST", "issue", [["ITNET-00002", 1], ["ITCMP-00005", 2]], { purpose: "تمديد شبكة مكتب الإدارة" });
     await submit("req.it", mLate.id);
     await as(c, sys, async () => {
       await c.query("UPDATE material_request SET sla_due_at = now() - interval '3 hours', submitted_at = now() - interval '27 hours' WHERE id = $1", [mLate.id]);
       await mr.slaSweep(c as any);
     });
     // returned for revision, rejected, draft
-    const mRet = await mkMr("req.mnt", "NTH", "issue", [["FLFUL-00002", 10]], { purpose: "وقود مولدات" });
+    const mRet = await mkMr("req.mnt", "SPR", "issue", [["MPGEN-00002", 4]], { purpose: "فلاتر هواء للمولدات" });
     await submit("req.mnt", mRet.id); await decide("dm.mnt", mRet.id, "return", "يرجى تحديد المولدات المستفيدة وأرقامها");
-    const mRej = await mkMr("req.env", "RYD", "issue", [["FRCHR-00001", 2]], { purpose: "كراسي إضافية" });
+    const mRej = await mkMr("req.env", "AST", "issue", [["FRCHR-00001", 2]], { purpose: "كراسي إضافية" });
     await submit("req.env", mRej.id); await decide("dm.env", mRej.id, "reject", "يتوفر أثاث فائض في المبنى، يرجى التنسيق مع الخدمات");
-    await mkMr("req.it", "RYD", "custody", [["ITCMP-00001", 1]], { purpose: "عهدة حاسب محمول لموظف جديد" });
+    await mkMr("req.it", "AST", "custody", [["ITCMP-00001", 1]], { purpose: "عهدة حاسب محمول لموظف جديد" });
     // demo realism: spread seeded lifecycles over plausible durations (instant seeding would show 0 h KPIs)
     await as(c, sys, async () => {
       await c.query(`UPDATE material_request SET submitted_at = delivered_at - make_interval(hours => 6 + (abs(hashtext(mr_no)) % 30)),

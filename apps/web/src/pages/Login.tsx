@@ -10,8 +10,8 @@ import { errorText } from "../util";
 // Shown only in demo builds (VITE_DEMO=1) — never in production.
 const DEMO = import.meta.env.VITE_DEMO === "1";
 const DEMO_USERS: [string, string, string][] = [
-  ["admin", "مدير النظام", "System Admin"], ["wm.riyadh", "مدير المستودع", "Warehouse Manager"],
-  ["sk.riyadh", "أمين المستودع", "Storekeeper"], ["ww.riyadh1", "عامل المستودع", "Warehouse Worker"],
+  ["admin", "مدير النظام", "System Admin"], ["wm.cons", "مدير المستودع", "Warehouse Manager"],
+  ["sk.cleaning", "أمين المستودع", "Storekeeper"], ["ww.cleaning1", "عامل المستودع", "Warehouse Worker"],
   ["mdo", "مسؤول البيانات الرئيسية", "Master Data Officer"], ["planner", "مخطط المخزون", "Inventory Planner"],
   ["req.env", "طالب مواد", "Requester"], ["dm.env", "مدير إدارة", "Department Manager"],
   ["irc1", "لجنة الفحص والاستلام", "Inspection Committee"], ["cdc1", "لجنة الجرد والإتلاف", "Count & Disposal Committee"],

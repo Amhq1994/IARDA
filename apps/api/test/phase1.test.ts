@@ -7,7 +7,7 @@ after(async () => { await app.close(); await pool.end(); });
 
 const L = await lookups();
 const newItem = (over: Record<string, unknown> = {}) => ({
-  nameAr: `صنف اختبار ${uniq()} ${uniq()}`, nameEn: `Test item ${uniq()}`, groupId: L.group("OFDSK"),
+  nameAr: `صنف اختبار ${uniq()} ${uniq()}`, nameEn: `Test item ${uniq()}`, groupId: L.group("CLTOL"),
   itemType: "consumable", baseUomId: L.uom("EA"), ...over,
 });
 
@@ -23,15 +23,15 @@ describe("authentication & sessions", () => {
 
   test("wrong password → 401 and lockout after 5 failures → 423", async () => {
     const c = new Client();
-    for (let i = 0; i < 5; i++) assert.equal((await c.post("/api/auth/login", { username: "ww.north", password: "nope" })).status, 401);
-    const r = await c.post("/api/auth/login", { username: "ww.north", password: "Iarda@2026!" });
+    for (let i = 0; i < 5; i++) assert.equal((await c.post("/api/auth/login", { username: "ww.hosp", password: "nope" })).status, 401);
+    const r = await c.post("/api/auth/login", { username: "ww.hosp", password: "Iarda@2026!" });
     assert.equal(r.status, 423);
     assert.equal(r.body.error.code, "account_locked");
     // admin unlocks
     const adm = await login("admin");
-    const id = (await pool.query("SELECT id FROM app_user WHERE username = 'ww.north'")).rows[0].id;
+    const id = (await pool.query("SELECT id FROM app_user WHERE username = 'ww.hosp'")).rows[0].id;
     assert.equal((await adm.post(`/api/users/${id}/unlock`)).status, 200);
-    assert.equal((await c.post("/api/auth/login", { username: "ww.north", password: "Iarda@2026!" })).status, 200);
+    assert.equal((await c.post("/api/auth/login", { username: "ww.hosp", password: "Iarda@2026!" })).status, 200);
   });
 
   test("unauthenticated → 401; state change without CSRF header → 403", async () => {
@@ -51,7 +51,7 @@ describe("authentication & sessions", () => {
 
 describe("RBAC & segregation of duties", () => {
   test("permission matrix is enforced per role", async () => {
-    const adm = await login("admin"), req = await login("req.env"), ww = await login("ww.riyadh1"), mdo = await login("mdo"), aud = await login("auditor");
+    const adm = await login("admin"), req = await login("req.env"), ww = await login("ww.cleaning1"), mdo = await login("mdo"), aud = await login("auditor");
     assert.equal((await adm.post("/api/items", newItem())).status, 403, "System Admin cannot create items");
     assert.equal((await ww.get("/api/users")).status, 403, "worker cannot list users");
     assert.equal((await mdo.get("/api/audit")).status, 403, "MDO has no audit access");
@@ -67,7 +67,7 @@ describe("RBAC & segregation of duties", () => {
   });
 
   test("SoD-6: requester/creator/submitter cannot approve; another manager can", async () => {
-    const wmR = await login("wm.riyadh"), wmN = await login("wm.north"), mdo = await login("mdo");
+    const wmR = await login("wm.cons"), wmN = await login("wm.assets"), mdo = await login("mdo");
     const it = (await wmR.post("/api/items", newItem())).body;            // WM requests the item
     assert.equal((await mdo.post(`/api/items/${it.id}/submit`)).status, 200);
     const self = await wmR.post(`/api/items/${it.id}/approve`);
@@ -98,7 +98,7 @@ describe("RBAC & segregation of duties", () => {
 describe("item master", () => {
   test("duplicate detection blocks near-identical names until acknowledged", async () => {
     const mdo = await login("mdo");
-    const body = newItem({ nameAr: "ورق تصوير A4 80 جرام ابيض", groupId: L.group("OFPAP"), baseUomId: L.uom("REAM") });
+    const body = newItem({ nameAr: "مناديل حمام لفه", groupId: L.group("CLPAP"), baseUomId: L.uom("ROLL") });
     const r1 = await mdo.post("/api/items", body);
     assert.equal(r1.status, 409);
     assert.equal(r1.body.error.code, "possible_duplicates");
@@ -120,7 +120,7 @@ describe("item master", () => {
   test("item codes follow GROUP-00000 and are unique", async () => {
     const mdo = await login("mdo");
     const a = (await mdo.post("/api/items", newItem())).body, b = (await mdo.post("/api/items", newItem())).body;
-    assert.match(a.item_code, /^OFDSK-\d{5}$/);
+    assert.match(a.item_code, /^CLTOL-\d{5}$/);
     assert.notEqual(a.item_code, b.item_code);
   });
 
@@ -139,9 +139,9 @@ describe("item master", () => {
     const it = (await mdo.post("/api/items", newItem({ identifiers: [{ idType: "barcode", value: bc }],
       conversions: [{ uomId: L.uom("BOX"), factorToBase: 12 }] }))).body;
     assert.equal((await mdo.get(`/api/items/lookup?code=${bc}`)).body.id, it.id);
-    const pol = await pln.put(`/api/items/${it.id}/policies/${L.wh("RYD")}`, { minQty: 10, maxQty: 100, reorderPoint: 20, safetyStock: 5 });
+    const pol = await pln.put(`/api/items/${it.id}/policies/${L.wh("CLN")}`, { minQty: 10, maxQty: 100, reorderPoint: 20, safetyStock: 5 });
     assert.equal(pol.status, 200);
-    const bad = await pln.put(`/api/items/${it.id}/policies/${L.wh("RYD")}`, { minQty: 50, maxQty: 10 });
+    const bad = await pln.put(`/api/items/${it.id}/policies/${L.wh("CLN")}`, { minQty: 50, maxQty: 10 });
     assert.equal(bad.status, 422, "max < min violates a DB constraint");
     const detail = (await mdo.get(`/api/items/${it.id}`)).body;
     assert.equal(detail.conversions[0].factor_to_base, 12);
@@ -192,17 +192,17 @@ describe("audit trail & soft delete", () => {
 
 describe("warehouse structure & data scope", () => {
   test("storekeepers only see their own warehouse", async () => {
-    const sk = await login("sk.riyadh");
+    const sk = await login("sk.cleaning");
     const list = (await sk.get("/api/warehouses")).body.data;
-    assert.deepEqual(list.map((w: any) => w.code), ["RYD"]);
-    const r = await sk.get(`/api/warehouses/${L.wh("NTH")}`);
+    assert.deepEqual(list.map((w: any) => w.code), ["CLN"]);
+    const r = await sk.get(`/api/warehouses/${L.wh("HSP")}`);
     assert.equal(r.status, 403);
     assert.equal(r.body.error.code, "out_of_scope");
   });
 
   test("bin generator builds Aisle > Rack > Bin under a zone, within scope only", async () => {
-    const wmN = await login("wm.north"), wmR = await login("wm.riyadh");
-    const zone = (await pool.query(`SELECT id FROM location WHERE full_code = 'NTH-RTN'`)).rows[0].id;
+    const wmN = await login("wm.assets"), wmR = await login("wm.cons");
+    const zone = (await pool.query(`SELECT id FROM location WHERE full_code = 'AST-RTN'`)).rows[0].id;
     // use a fresh aisle number so reruns do not collide
     const start = 10 + Math.floor(Math.random() * 80);
     const denied = await wmR.post(`/api/locations/${zone}/generate`, { aisles: 1, racksPerAisle: 1, binsPerRack: 1, startAisle: start });
@@ -210,14 +210,14 @@ describe("warehouse structure & data scope", () => {
     const r = await wmN.post(`/api/locations/${zone}/generate`, { aisles: 1, racksPerAisle: 2, binsPerRack: 3, startAisle: start });
     assert.equal(r.status, 201);
     assert.equal(r.body.bins, 6);
-    const bin = (await wmN.get(`/api/locations/lookup?code=NTH-RTN-A${String(start).padStart(2, "0")}-R02-B03`)).body;
+    const bin = (await wmN.get(`/api/locations/lookup?code=AST-RTN-A${String(start).padStart(2, "0")}-R02-B03`)).body;
     assert.equal(bin.level, "bin");
   });
 
   test("hierarchy is enforced by the database (no bin directly under a zone)", async () => {
-    const wm = await login("wm.riyadh");
-    const zone = (await pool.query(`SELECT id FROM location WHERE full_code = 'RYD-QRN'`)).rows[0].id;
-    const r = await wm.post("/api/locations", { warehouseId: L.wh("RYD"), parentId: zone, level: "bin", code: `X${uniq().slice(0, 4).toUpperCase()}` });
+    const wm = await login("wm.cons");
+    const zone = (await pool.query(`SELECT id FROM location WHERE full_code = 'CLN-QRN'`)).rows[0].id;
+    const r = await wm.post("/api/locations", { warehouseId: L.wh("CLN"), parentId: zone, level: "bin", code: `X${uniq().slice(0, 4).toUpperCase()}` });
     assert.equal(r.status, 409);
     assert.equal(r.body.error.code, "location_hierarchy");
   });

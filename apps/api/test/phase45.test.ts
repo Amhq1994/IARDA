@@ -11,7 +11,7 @@ const ok = (r: { status: number; body: any }, code = 200) => assert.equal(r.stat
 let planner: Client, wmR: Client, wmN: Client, skR: Client, wwR: Client, proc: Client, fin: Client, admin: Client, reqEnv: Client, dmEnv: Client, cdc1: Client, sup: Client;
 before(async () => {
   [planner, wmR, wmN, skR, wwR, proc, fin, admin, reqEnv, dmEnv, cdc1, sup] = await Promise.all(
-    ["planner", "wm.riyadh", "wm.north", "sk.riyadh", "ww.riyadh1", "proc", "fin", "admin", "req.env", "dm.env", "cdc1", "supplier.rowad"].map((u) => login(u)));
+    ["planner", "wm.cons", "wm.assets", "sk.cleaning", "ww.cleaning1", "proc", "fin", "admin", "req.env", "dm.env", "cdc1", "supplier.rowad"].map((u) => login(u)));
 });
 
 /** Approves every pending task of a document with whoever holds it. */
@@ -28,12 +28,12 @@ async function approveAll(docType: string, docId: string) {
 
 /** Full material-request lifecycle through the API, delivered to the requester. */
 async function issue(requester: Client, requesterUser: string, type: string, lines: { itemId: string; qty: number }[]) {
-  const m = await requester.post("/api/requests", { requestType: type, warehouseId: L.wh("RYD"), purpose: "اختبار", lines });
+  const m = await requester.post("/api/requests", { requestType: type, warehouseId: L.wh("CLN"), purpose: "اختبار", lines });
   ok(m, 201);
   ok(await requester.post(`/api/requests/${m.body.id}/submit`, { acknowledgeWarnings: true }));
   await approveAll("MR", m.body.id);
   ok(await skR.post(`/api/requests/${m.body.id}/reserve`));
-  const pl = (await skR.post(`/api/requests/${m.body.id}/pick-list`, { assignTo: await id("ww.riyadh1") })).body;
+  const pl = (await skR.post(`/api/requests/${m.body.id}/pick-list`, { assignTo: await id("ww.cleaning1") })).body;
   for (const t of (await wwR.get(`/api/pick-lists/${pl.id}`)).body.tasks) {
     ok(await wwR.post(`/api/pick-tasks/${t.id}/confirm`, { location: t.full_code, item: t.item_code, lot: t.serial_no ?? t.lot_no, qty: t.qty }));
   }
@@ -63,11 +63,11 @@ describe("planning", () => {
     // legacy demand: ~45/month → reorder needed with only 2 on hand
     const months = [1, 2, 3, 4, 5, 6].map((m) => { const d = new Date(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - m); return d.toISOString().slice(0, 10); });
     for (const [i, p] of months.entries()) {
-      await pool.query(`INSERT INTO consumption_history (item_id, warehouse_id, period, qty, value) VALUES ($1,$2,$3,$4,$5)`, [it.id, L.wh("RYD"), p, 40 + i * 2, (40 + i * 2) * 40]);
+      await pool.query(`INSERT INTO consumption_history (item_id, warehouse_id, period, qty, value) VALUES ($1,$2,$3,$4,$5)`, [it.id, L.wh("CLN"), p, 40 + i * 2, (40 + i * 2) * 40]);
     }
-    await pool.query("INSERT INTO item_warehouse_policy (item_id, warehouse_id, lead_time_days) VALUES ($1,$2,7) ON CONFLICT DO NOTHING", [it.id, L.wh("RYD")]).catch(() => {});
-    assert.equal((await reqEnv.post("/api/planning/runs", { warehouseId: L.wh("RYD") })).status, 403);
-    const run = await planner.post("/api/planning/runs", { warehouseId: L.wh("RYD") });
+    await pool.query("INSERT INTO item_warehouse_policy (item_id, warehouse_id, lead_time_days) VALUES ($1,$2,7) ON CONFLICT DO NOTHING", [it.id, L.wh("CLN")]).catch(() => {});
+    assert.equal((await reqEnv.post("/api/planning/runs", { warehouseId: L.wh("CLN") })).status, 403);
+    const run = await planner.post("/api/planning/runs", { warehouseId: L.wh("CLN") });
     ok(run, 201);
     const lines = (await planner.get(`/api/planning/runs/${run.body.id}?q=${it.item_code}`)).body.lines.data;
     assert.equal(lines.length, 1, "policy exists for the received item");
@@ -75,7 +75,7 @@ describe("planning", () => {
     assert.equal(l.action, "reorder");
     assert.ok(l.reorder_point > 2 && l.suggested_qty >= (l.eoq ?? 1));
     ok(await planner.post(`/api/planning/runs/${run.body.id}/apply`, { lineIds: [l.id] }));
-    const pol = (await pool.query("SELECT reorder_point, max_qty, safety_stock FROM item_warehouse_policy WHERE item_id = $1 AND warehouse_id = $2", [it.id, L.wh("RYD")])).rows[0];
+    const pol = (await pool.query("SELECT reorder_point, max_qty, safety_stock FROM item_warehouse_policy WHERE item_id = $1 AND warehouse_id = $2", [it.id, L.wh("CLN")])).rows[0];
     assert.equal(Number(pol.reorder_point), l.reorder_point);
     assert.equal(Number(pol.max_qty), l.max_qty);
 
@@ -90,14 +90,14 @@ describe("planning", () => {
     ok(await wmR.post(`/api/approvals/PR/${prId}/decision`, { action: "approve" }));
     const outbox = (await pool.query("SELECT count(*)::int AS n FROM integration_outbox WHERE doc_type = 'PR' AND doc_id = $1 AND event = 'requisition.approved'", [prId])).rows[0].n;
     assert.equal(outbox, 1, "approved requisition queued for Etimad");
-    assert.equal((await planner.post(`/api/prs/${prId}/convert`, { supplierId: L.wh("RYD") })).status, 403, "planner cannot place POs");
+    assert.equal((await planner.post(`/api/prs/${prId}/convert`, { supplierId: L.wh("CLN") })).status, 403, "planner cannot place POs");
     const po = await proc.post(`/api/prs/${prId}/convert`, { supplierId: (await pool.query("SELECT id FROM supplier WHERE code='SUP-002'")).rows[0].id, etimadRef: `ETM-${uniq()}` });
     ok(po, 201);
     pr = (await planner.get(`/api/prs/${prId}`)).body;
     assert.equal(pr.status, "converted");
     assert.equal(pr.po.po_no, po.body.po_no);
     // the next run counts the PO as on order → no second suggestion
-    const run2 = (await planner.post("/api/planning/runs", { warehouseId: L.wh("RYD") })).body;
+    const run2 = (await planner.post("/api/planning/runs", { warehouseId: L.wh("CLN") })).body;
     const l2 = (await planner.get(`/api/planning/runs/${run2.id}?q=${it.item_code}`)).body.lines.data[0];
     assert.equal(l2.on_order, l.suggested_qty);
     assert.notEqual(l2.action, "reorder");
@@ -110,11 +110,11 @@ describe("valuation & journals", () => {
     await receive(it.id, 5, { price: 10 });
     await receive(it.id, 5, { price: 20 });
     const bin = (await pool.query("SELECT location_id FROM stock_balance WHERE item_id = $1 AND qty_on_hand > 0 LIMIT 1", [it.id])).rows[0].location_id;
-    const a = (await skR.post("/api/adjustments", { warehouseId: L.wh("RYD"), reason: "اختبار FIFO", lines: [{ locationId: bin, itemId: it.id, qtyDelta: -5 }] })).body;
+    const a = (await skR.post("/api/adjustments", { warehouseId: L.wh("CLN"), reason: "اختبار FIFO", lines: [{ locationId: bin, itemId: it.id, qtyDelta: -5 }] })).body;
     ok(await skR.post(`/api/adjustments/${a.id}/submit`));
     await approveAll("ADJ", a.id);
     ok(await cdc1.post(`/api/adjustments/${a.id}/post`));
-    const v = (await fin.get(`/api/valuation/items?warehouseId=${L.wh("RYD")}&q=${it.item_code}`)).body.data[0];
+    const v = (await fin.get(`/api/valuation/items?warehouseId=${L.wh("CLN")}&q=${it.item_code}`)).body.data[0];
     assert.equal(v.qty_on_hand, 5);
     assert.equal(v.total_value, 75, "WAVG: 5 × 15");
     assert.equal(v.fifo_value, 100, "FIFO: the newest layer (5 × 20) remains");
@@ -174,7 +174,7 @@ describe("custody & clearance", () => {
     ok(await reqEnv.post(`/api/custody/${cu.id}/acknowledge`));
 
     // clearance blocked by the active custody; the employee cannot clear themselves
-    const self = await skR.post("/api/clearances", { employeeId: await id("sk.riyadh"), reason: "transfer" });
+    const self = await skR.post("/api/clearances", { employeeId: await id("sk.cleaning"), reason: "transfer" });
     assert.equal(self.status, 409);
     const existing = (await pool.query("SELECT id FROM clearance WHERE employee_id = $1 AND status = 'blocked'", [await id("req.env")])).rows[0];
     const cl = existing ? (await skR.post(`/api/clearances/${existing.id}/recheck`)).body : (await skR.post("/api/clearances", { employeeId: await id("req.env"), reason: "resignation" })).body;
@@ -243,7 +243,7 @@ describe("KPIs, reports, schedules", () => {
 
   test("schedules: create, run now, recipients notified with a download link", async () => {
     const s = await wmR.post("/api/report-schedules", { name: `اختبار ${uniq()}`, reportCode: "expiry", format: "xlsx", frequency: "weekly", weekday: 2, hour: 7,
-      recipientIds: [await id("sk.riyadh")] });
+      recipientIds: [await id("sk.cleaning")] });
     ok(s, 201);
     assert.ok(new Date(s.body.next_run_at) > new Date());
     const run = await wmR.post(`/api/report-schedules/${s.body.id}/run`);
@@ -275,7 +275,7 @@ describe("integrations", () => {
     assert.equal((await call("iwk_00000000_xxxxxxxxxxxxxxxxxxxxxxxx", "GET", "/api/integration/v1/ping")).statusCode, 401);
     assert.equal((await call(erpKey, "GET", "/api/integration/v1/ping")).statusCode, 200);
     assert.equal((await call(erpKey, "POST", "/api/integration/v1/cmms/material-requests", {})).statusCode, 403, "scope enforced");
-    const stock = (await call(erpKey, "GET", "/api/integration/v1/stock?warehouseCode=RYD")).json();
+    const stock = (await call(erpKey, "GET", "/api/integration/v1/stock?warehouseCode=CLN")).json();
     assert.ok(stock.data.length > 10);
     const logged = (await pool.query("SELECT count(*)::int AS n FROM integration_call WHERE path LIKE '/api/integration/v1/%'")).rows[0].n;
     assert.ok(logged >= 4);
@@ -284,7 +284,7 @@ describe("integrations", () => {
   test("ERP: purchase order in (idempotent), journals out and acknowledged", async () => {
     const call = (method: string, url: string, payload?: unknown) => app.inject({ method: method as any, url, payload: payload as any, headers: { "x-api-key": erpKey } });
     const poNo = `ERP-PO-${uniq()}`;
-    const body = { poNo, etimadRef: "ETM-1", supplierCode: "SUP-001", warehouseCode: "RYD", lines: [{ itemCode: "OFPAP-00001", qty: 10, unitPrice: 12.5 }] };
+    const body = { poNo, etimadRef: "ETM-1", supplierCode: "SUP-001", warehouseCode: "CLN", lines: [{ itemCode: "CLPAP-00002", qty: 10, unitPrice: 12.5 }] };
     const r1 = await call("POST", "/api/integration/v1/purchase-orders", body);
     assert.equal(r1.statusCode, 201, r1.body);
     const r2 = await call("POST", "/api/integration/v1/purchase-orders", body);
@@ -308,12 +308,12 @@ describe("integrations", () => {
     const cm = (method: string, url: string, payload?: unknown) => app.inject({ method: method as any, url, payload: payload as any, headers: { "x-api-key": cmmsKey } });
     const wo = `WO-${uniq()}`;
     const emp = (await pool.query("SELECT employee_no FROM app_user WHERE username = 'req.mnt'")).rows[0].employee_no;
-    const r = await cm("POST", "/api/integration/v1/cmms/material-requests", { workOrderRef: wo, requesterEmployeeNo: emp, warehouseCode: "RYD", lines: [{ itemCode: "OFPAP-00001", qty: 1 }] });
+    const r = await cm("POST", "/api/integration/v1/cmms/material-requests", { workOrderRef: wo, requesterEmployeeNo: emp, warehouseCode: "CLN", lines: [{ itemCode: "CLPAP-00002", qty: 1 }] });
     assert.equal(r.statusCode, 201, r.body);
     const m = (await pool.query("SELECT request_type, requester_id, status FROM material_request WHERE work_order_ref = $1", [wo])).rows[0];
     assert.equal(m.request_type, "work_order");
     assert.equal(m.requester_id, await id("req.mnt"));
-    assert.equal((await cm("POST", "/api/integration/v1/cmms/material-requests", { workOrderRef: wo, requesterEmployeeNo: emp, warehouseCode: "RYD", lines: [{ itemCode: "OFPAP-00001", qty: 1 }] })).json().idempotent, true);
+    assert.equal((await cm("POST", "/api/integration/v1/cmms/material-requests", { workOrderRef: wo, requesterEmployeeNo: emp, warehouseCode: "CLN", lines: [{ itemCode: "CLPAP-00002", qty: 1 }] })).json().idempotent, true);
     assert.equal((await cm("GET", `/api/integration/v1/cmms/material-requests/${wo}`)).json().work_order_ref, wo);
 
     const hr = await app.inject({ method: "POST", url: "/api/integration/v1/hr/exits", headers: { "x-api-key": hrKey },
@@ -333,7 +333,7 @@ describe("portal, labels, alerts, health", () => {
   });
 
   test("bin labels as ZPL", async () => {
-    const r = await app.inject({ method: "GET", url: `/api/labels/bins.zpl?warehouseId=${L.wh("RYD")}&codes=RYD-STR-A01-R01-B01,RYD-STR-A01-R01-B02`, headers: { cookie: skR.cookie } });
+    const r = await app.inject({ method: "GET", url: `/api/labels/bins.zpl?warehouseId=${L.wh("CLN")}&codes=CLN-STR-A01-R01-B01,CLN-STR-A01-R01-B02`, headers: { cookie: skR.cookie } });
     assert.equal(r.statusCode, 200);
     assert.equal((r.body.match(/\^XA/g) ?? []).length, 2);
     assert.match(r.body, /\^BC/);

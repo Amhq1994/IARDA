@@ -26,7 +26,7 @@ export async function createReturn(c: Tx, actor: { id: string; orgUnitId: string
       const issued = await one(c, `SELECT coalesce(sum(qty_issued), 0) AS q FROM mr_line WHERE mr_id = $1 AND item_id = $2 AND deleted_at IS NULL`, [b.mrId, l.itemId]);
       const returned = await one(c, `SELECT coalesce(sum(rl.qty), 0) AS q FROM return_line rl JOIN return_doc r ON r.id = rl.return_id
                                       WHERE r.mr_id = $1 AND rl.item_id = $2 AND r.status NOT IN ('cancelled','rejected')`, [b.mrId, l.itemId]);
-      if (l.qty > Number(issued.q) - Number(returned.q) + 1e-9) throw new ApiError(422, "exceeds_issued", "الكمية المرتجعة تتجاوز المصروف على الطلب", "Returned quantity exceeds what was issued on the request");
+      if (l.qty > Number(issued.q) - Number(returned.q) + 1e-9) throw new ApiError(422, "exceeds_issued", "كمية الرجيع تتجاوز المصروف على الطلب", "Returned quantity exceeds what was issued on the request");
     }
   }
   const ret = await one(c, `INSERT INTO return_doc (ret_no, return_type, warehouse_id, org_unit_id, returned_by, mr_id, reason) VALUES ($1,'to_warehouse',$2,$3,$4,$5,$6) RETURNING *`,
