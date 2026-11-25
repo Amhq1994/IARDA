@@ -7,3 +7,7 @@ reports/out/
 # licensed fonts are provided by IARDA and must not be committed
 brand/fonts/official/*
 !brand/fonts/official/.gitkeep
+
+storage/
+storage-test/
+apps/web/dist/
