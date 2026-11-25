@@ -7,6 +7,7 @@ import { config } from "../src/config.ts";
 import { encrypt } from "../src/lib/crypto.ts";
 import { hashPassword } from "../src/auth/routes.ts";
 import { CATALOG, UOMS } from "./catalog.ts";
+import { seedPhase2 } from "./seed-phase2.ts";
 
 export const DEMO_PASSWORD = "Iarda@2026!";
 
@@ -105,7 +106,12 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
   await client.connect();
   const q = (sql: string, p: unknown[] = []) => client.query(sql, p);
   try {
-    if ((await q("SELECT count(*)::int AS n FROM role")).rows[0].n > 0) { log("seed: database already seeded — skipping"); return; }
+    if ((await q("SELECT count(*)::int AS n FROM role")).rows[0].n > 0) {
+      log("seed: phase 1 data present — skipping");
+      await client.end();
+      await seedPhase2(databaseUrl, log);
+      return;
+    }
     await q("BEGIN");
 
     // system actor for the audit trail of seeded records
@@ -291,11 +297,14 @@ export async function seed(databaseUrl = config.databaseUrl, log = console.log) 
 
     await q("COMMIT");
     log(`seed: ${USERS.length} users, ${WAREHOUSES.length} warehouses, ${binCount} bins, ${n} items — demo password: ${DEMO_PASSWORD}`);
+    await client.end();
+    await seedPhase2(databaseUrl, log);
+    return;
   } catch (err) {
     await q("ROLLBACK").catch(() => {});
     throw err;
   } finally {
-    await client.end();
+    await client.end().catch(() => {});
   }
 }
 

@@ -14,26 +14,29 @@ import { decryptBlob, encryptBlob, sha256 } from "../lib/crypto.ts";
 const ALLOWED: Record<string, string[]> = {
   "image/jpeg": ["ffd8ff"], "image/png": ["89504e47"], "image/webp": ["52494646"], "application/pdf": ["25504446"],
 };
-/** Which permission is needed to write / read attachments of an owner type. */
-const OWNER_PERMS: Record<string, { write: Permission; read: Permission }> = {
-  item: { write: "item.manage", read: "item.read" },
+/** Which permissions may write / read attachments of an owner type, and the table holding the owner. */
+const OWNER_PERMS: Record<string, { write: Permission[]; read: Permission[]; table: string }> = {
+  item: { write: ["item.manage"], read: ["item.read"], table: "item" },
+  receipt: { write: ["inspection.execute", "receipt.execute"], read: ["receipt.execute", "inspection.execute", "grn.post", "po.read", "audit.read"], table: "receipt" },
+  delivery_note: { write: [], read: ["request.create", "issue.execute", "audit.read"], table: "delivery_note" },
 };
+const canAny = (u: any, perms: Permission[]) => perms.some((p) => can(u, p));
 
 export async function attachmentRoutes(app: FastifyInstance) {
   app.post("/api/attachments", { preHandler: requireAuth, schema: { tags: ["items"], summary: "Upload an attachment (multipart)" } }, async (req, rep) => {
     const file = await req.file();
     if (!file) throw E.invalid([{ path: "file", message: "required" }]);
     const fields = Object.fromEntries(Object.entries(file.fields).map(([k, v]: any) => [k, v?.value]));
-    const meta = parse(z.object({ ownerType: z.enum(Object.keys(OWNER_PERMS) as [string]), ownerId: uuid,
+    const meta = parse(z.object({ ownerType: z.enum(["item", "receipt"]), ownerId: uuid,
       category: z.enum(["image", "spec_sheet", "inspection_report", "minutes", "invoice", "other"]), isPrimary: z.coerce.boolean().default(false) }), fields);
-    if (!can(req.user, OWNER_PERMS[meta.ownerType].write)) throw E.forbidden(OWNER_PERMS[meta.ownerType].write);
+    if (!canAny(req.user, OWNER_PERMS[meta.ownerType].write)) throw E.forbidden(OWNER_PERMS[meta.ownerType].write.join("|"));
     const buf = await file.toBuffer();
     const sigs = ALLOWED[file.mimetype];
     if (!sigs || !sigs.some((s) => buf.subarray(0, s.length / 2).toString("hex") === s)) {
       throw new ApiError(415, "unsupported_file", "نوع الملف غير مسموح (JPG, PNG, WEBP, PDF)", "File type not allowed (JPG, PNG, WEBP, PDF)");
     }
     if (meta.category === "image" && !file.mimetype.startsWith("image/")) throw E.invalid([{ path: "file", message: "image_required" }]);
-    const owner = await one(pool, "SELECT id FROM item WHERE id = $1 AND deleted_at IS NULL", [meta.ownerId]);
+    const owner = await one(pool, `SELECT id FROM ${OWNER_PERMS[meta.ownerType].table} WHERE id = $1`, [meta.ownerId]);
     if (!owner) throw E.notFound(meta.ownerType);
     const digest = sha256(buf);
     const key = `${meta.ownerType}/${digest.slice(0, 2)}/${digest}-${Date.now()}.bin`;
@@ -54,7 +57,7 @@ export async function attachmentRoutes(app: FastifyInstance) {
     const a = await one(pool, "SELECT * FROM attachment WHERE id = $1 AND deleted_at IS NULL", [id]);
     if (!a) throw E.notFound("attachment");
     const perms = OWNER_PERMS[a.owner_type];
-    if (!perms || !can(req.user, perms.read)) throw E.forbidden();
+    if (!perms || !canAny(req.user, perms.read)) throw E.forbidden();
     const data = decryptBlob(await readFile(join(config.storageDir, a.storage_key)));
     if (sha256(data) !== a.sha256) throw new ApiError(500, "integrity", "فشل التحقق من سلامة الملف", "Attachment integrity check failed");
     rep.header("content-type", a.mime_type).header("cache-control", "private, max-age=300")
@@ -67,7 +70,7 @@ export async function attachmentRoutes(app: FastifyInstance) {
     return withTx(txCtx(req), async (c) => {
       const a = await one(c, "SELECT owner_type FROM attachment WHERE id = $1 AND deleted_at IS NULL FOR UPDATE", [id]);
       if (!a) throw E.notFound("attachment");
-      if (!can(req.user, OWNER_PERMS[a.owner_type]?.write)) throw E.forbidden();
+      if (!canAny(req.user, OWNER_PERMS[a.owner_type]?.write ?? [])) throw E.forbidden();
       await c.query("UPDATE attachment SET deleted_at = now(), deleted_by = $2 WHERE id = $1", [id, req.user!.id]);
       return { ok: true };
     });

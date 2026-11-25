@@ -3,6 +3,7 @@
 process.env.DATABASE_URL ??= "postgres://wms_app:wms_app_dev@localhost:5432/iarda_wms_test";
 process.env.DATABASE_OWNER_URL ??= "postgres://wms_owner:wms_owner_dev@localhost:5432/iarda_wms_test";
 process.env.LOGIN_RATE_LIMIT ??= "100000";
+process.env.JOBS ??= "off";
 process.env.STORAGE_DIR ??= new URL("../../../storage-test/", import.meta.url).pathname;
 
 const { migrate } = await import("../src/db/migrate.ts");

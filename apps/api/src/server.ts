@@ -19,6 +19,10 @@ import { adminRoutes } from "./modules/admin.ts";
 import { auditRoutes } from "./modules/audit.ts";
 import { attachmentRoutes } from "./modules/attachments.ts";
 import { dashboardRoutes } from "./modules/dashboard.ts";
+import { inventoryRoutes } from "./modules/inventory.ts";
+import { inboundRoutes } from "./modules/inbound.ts";
+import { requestRoutes } from "./modules/requests.ts";
+import { startScheduler } from "./jobs.ts";
 
 export async function buildServer(opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
   const app = Fastify({
@@ -44,7 +48,7 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   await app.register(swagger, {
     openapi: {
       info: { title: "IARDA WMS API", version: "1.0.0", description: "Warehouse Management & Inventory Control System — REST API" },
-      tags: [{ name: "auth" }, { name: "items" }, { name: "catalog" }, { name: "warehouses" }, { name: "admin" }, { name: "audit" }],
+      tags: [{ name: "auth" }, { name: "items" }, { name: "catalog" }, { name: "warehouses" }, { name: "inventory" }, { name: "inbound" }, { name: "requests" }, { name: "admin" }, { name: "audit" }],
     },
   });
   await app.register(swaggerUi, { routePrefix: "/api/docs" });
@@ -86,6 +90,10 @@ export async function buildServer(opts: { logger?: boolean } = {}): Promise<Fast
   await app.register(auditRoutes);
   await app.register(attachmentRoutes);
   await app.register(dashboardRoutes);
+  await app.register(inventoryRoutes);
+  await app.register(inboundRoutes);
+  await app.register(requestRoutes);
+  startScheduler(app);
 
   app.get("/api/health", { schema: { hide: true } }, async () => ({ ok: true }));
 

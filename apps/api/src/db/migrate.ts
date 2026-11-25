@@ -52,6 +52,12 @@ async function applyGrants(client: pg.Client, role: string) {
     REVOKE DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public FROM ${r};
     REVOKE INSERT, UPDATE ON audit_log, schema_migrations FROM ${r};
     REVOKE UPDATE ON security_event FROM ${r};
+    -- I-1: quantities change only through the SECURITY DEFINER posting functions
+    DO $g$ BEGIN
+      IF to_regclass('public.stock_ledger') IS NOT NULL THEN
+        EXECUTE 'REVOKE INSERT, UPDATE ON stock_balance, stock_ledger, item_valuation, reservation FROM ${r}';
+      END IF;
+    END $g$;
     GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${r};
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${r};
   `);
